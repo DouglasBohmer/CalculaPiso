@@ -31,7 +31,6 @@ public class Menu extends JFrame {
 	}
 
 	/**
-	 * Create the frame.
 	 */
 	public Menu() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
