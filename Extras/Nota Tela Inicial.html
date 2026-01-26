@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcula Piso - Redesign</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 24px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .last-update {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #e9ecef;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: #3498db;
+            border-radius: 2px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .form-group input[readonly] {
+            background: #f8f9fa;
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            display: block;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(149, 165, 166, 0.3);
+        }
+
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .piso-info {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            border: 2px solid #e9ecef;
+        }
+
+        .piso-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .piso-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .piso-codes {
+            display: flex;
+            gap: 12px;
+        }
+
+        .code-badge {
+            background: #3498db;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .price-section {
+            background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            border-left: 4px solid #27ae60;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .contact-section {
+            background: #fff3cd;
+            border-radius: 8px;
+            padding: 16px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .materials-section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            border: 2px solid #e9ecef;
+        }
+
+        .quantity-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .quantity-card {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .quantity-card h4 {
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+
+        .material-types {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .bottom-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .btn-large {
+            flex: 1;
+            padding: 16px 24px;
+            font-size: 18px;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+            color: white;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(23, 162, 184, 0.3);
+        }
+
+        @media (max-width: 1024px) {
+            .left-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            .right-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>CALCULA PISO</h1>
+            <div class="last-update">Última alt.: 09/03/25 · 14h · TESTE</div>
+        </header>
+
+        <div class="main-content">
+            <!-- Left Panel -->
+            <div class="left-panel">
+                <!-- Identificação do Piso -->
+                <div class="card">
+                    <div class="card-title">Identificação do Piso</div>
+                    <div class="form-group">
+                        <label>Código Piso</label>
+                        <input type="text" value="0" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>M² Cliente</label>
+                        <input type="text" value="0" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Caixas Cliente</label>
+                        <input type="text" value="0" readonly>
+                    </div>
+                    
+                    <button class="btn btn-primary">🔍 Pesquisar</button>
+                    <button class="btn btn-secondary">🗑️ Apagar Pesquisa</button>
+                </div>
+
+                <!-- Informações do Piso -->
+                <div class="card">
+                    <div class="card-title">Informações Técnicas</div>
+                    <div class="info-grid">
+                        <div class="form-group">
+                            <label>Largura (cm)</label>
+                            <input type="number" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Altura (cm)</label>
+                            <input type="number" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Rejunte (mm)</label>
+                            <input type="number" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Peças p/ CX</label>
+                            <input type="number" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>M² p/ Peça</label>
+                            <input type="number" placeholder="0" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>M² p/ CX</label>
+                            <input type="number" placeholder="0" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>PEI</label>
+                            <input type="number" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Retificado</label>
+                            <select>
+                                <option value="">Selecione</option>
+                                <option value="sim">Sim</option>
+                                <option value="nao">Não</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="right-panel">
+                <!-- Informações do Piso Selecionado -->
+                <div class="piso-info">
+                    <div class="piso-header">
+                        <div class="piso-name">Nome do Piso</div>
+                        <div class="piso-codes">
+                            <span class="code-badge">Cód Asso</span>
+                            <span class="code-badge">Cód CTC</span>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn btn-small btn-info">📸 Site Piso</button>
+                        <button class="btn btn-small btn-secondary">🖼️ Foto Piso</button>
+                    </div>
+
+                    <div class="card-title" style="margin: 20px 0 16px 0;">Ver Tabela Separador/Nivelador</div>
+                    
+                    <div class="price-section">
+                        <div class="price-row">
+                            <span>R$ por m²</span>
+                            <input type="text" style="width: 120px; margin-left: 12px;" placeholder="0,00">
+                        </div>
+                    </div>
+
+                    <div class="contact-section">
+                        <div class="price-row">
+                            <span>Telefone</span>
+                            <div style="display: flex; gap: 8px;">
+                                <span>(</span>
+                                <input type="text" style="width: 60px;" placeholder="00">
+                                <span>)</span>
+                                <input type="text" style="width: 120px;" placeholder="0000-0000">
+                            </div>
+                        </div>
+                        <button class="btn btn-success" style="margin-top: 12px;">📱 Enviar por WhatsApp</button>
+                    </div>
+                </div>
+
+                <!-- Quantidade de Materiais -->
+                <div class="materials-section">
+                    <div class="card-title">QTD Aproximada de Materiais</div>
+                    
+                    <div class="quantity-grid">
+                        <div class="quantity-card">
+                            <h4>Quantidade de caixa para M² pedida</h4>
+                            <input type="text" placeholder="0" style="margin-top: 8px;">
+                        </div>
+                        <div class="quantity-card">
+                            <h4>Quantidade M² digitar no cupom</h4>
+                            <input type="text" placeholder="0" style="margin-top: 8px;">
+                        </div>
+                    </div>
+
+                    <div class="material-types">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">KG</label>
+                            <div class="form-group">
+                                <label>Argamassa</label>
+                                <input type="text" placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Rejunte</label>
+                                <input type="text" placeholder="0">
+                            </div>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Sacos</label>
+                            <input type="text" placeholder="0" style="margin-bottom: 16px;">
+                            <input type="text" placeholder="0">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label>Tipo de Piso</label>
+                        <select>
+                            <option value="">Selecione o tipo</option>
+                            <option value="ceramico">Cerâmico</option>
+                            <option value="porcelanato">Porcelanato</option>
+                            <option value="vinilico">Vinílico</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Local de Uso</label>
+                        <select>
+                            <option value="">Selecione o local</option>
+                            <option value="interno">Interno</option>
+                            <option value="externo">Externo</option>
+                            <option value="banheiro">Banheiro</option>
+                            <option value="cozinha">Cozinha</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Ações Finais -->
+                <div class="bottom-actions">
+                    <button class="btn btn-large btn-success">💾 Cadastrar Piso</button>
+                    <button class="btn btn-large btn-secondary">↩️ Voltar p/ Menu</button>
+                    <button class="btn btn-large btn-info">📋 Ver Pisos Cadastrados</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
