@@ -58,6 +58,16 @@ import javax.swing.JTextArea;
 import java.math.BigDecimal; // <-- Adicionar esta linha
 import java.math.RoundingMode; // <-- Adicionar esta linha
 
+import java.awt.print.PrinterJob;
+import java.awt.print.PrinterException;
+import java.awt.print.Printable;
+import java.awt.print.PageFormat;
+import java.awt.print.Paper;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Font;
+import javax.print.PrintService;
+
 public class Procura extends JFrame {
 
 	private JPanel contentPane;
@@ -703,7 +713,7 @@ public class Procura extends JFrame {
 		contentPane.add(Botao_Reset);
 		
 		JLabel lblNewLabel_1_1_1_6 = new JLabel("Informações Técnicas");
-		lblNewLabel_1_1_1_6.setBounds(22, 232, 323, 25);
+		lblNewLabel_1_1_1_6.setBounds(22, 232, 323, 35);
 		lblNewLabel_1_1_1_6.setHorizontalAlignment(SwingConstants.CENTER);
 		lblNewLabel_1_1_1_6.setForeground(Color.BLACK);
 		lblNewLabel_1_1_1_6.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 20));
@@ -1077,6 +1087,19 @@ public class Procura extends JFrame {
 		lblStatus.setHorizontalAlignment(SwingConstants.CENTER);
 		lblStatus.setBounds(709, 110, 35, 24);
 		contentPane.add(lblStatus);
+		
+		JButton Botao_Imprimir = new JButton("Imprimir Dados do Piso");
+		Botao_Imprimir.addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent e) {
+		    	
+		    	Imprimir();
+		    	
+		      }
+		});
+		Botao_Imprimir.setMnemonic(KeyEvent.VK_S);
+		Botao_Imprimir.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 18));
+		Botao_Imprimir.setBounds(22, 198, 323, 35);
+		contentPane.add(Botao_Imprimir);
 			
 	}
 	
@@ -1233,4 +1256,167 @@ public class Procura extends JFrame {
         } 
         return F_Mascara;
 	} 	
+
+	public void Imprimir() {
+	    // 1. Procura a impressora ELGIN
+	    javax.print.PrintService[] services = java.awt.print.PrinterJob.lookupPrintServices();
+	    javax.print.PrintService elginService = null;
+
+	    for (javax.print.PrintService service : services) {
+	        String nome = service.getName().toUpperCase();
+	        if (nome.contains("ELGIN") || nome.contains("NFCE")) {
+	            elginService = service;
+	            break; 
+	        }
+	    }
+
+	    if (elginService == null) {
+	        javax.swing.JOptionPane.showMessageDialog(null, "Impressora ELGIN não encontrada!");
+	        return;
+	    }
+
+	    // 2. Configura o Papel (80mm)
+	    java.awt.print.PrinterJob job = java.awt.print.PrinterJob.getPrinterJob();
+	    try {
+	        job.setPrintService(elginService);
+	    } catch (java.awt.print.PrinterException e) {
+	        e.printStackTrace();
+	        return;
+	    }
+
+	    java.awt.print.PageFormat pf = job.defaultPage();
+	    java.awt.print.Paper paper = pf.getPaper();
+
+	    double width = 226; // 80mm
+	    double height = 3000; // Altura bem grande para não faltar
+	    double margin = 5;    // Margem pequena para aproveitar a largura
+
+	    paper.setSize(width, height);
+	    paper.setImageableArea(margin, 0, width - (2 * margin), height);
+	    pf.setPaper(paper);
+
+	    // 3. Desenho do Layout
+	    job.setPrintable(new java.awt.print.Printable() {
+	        @Override
+	        public int print(java.awt.Graphics g, java.awt.print.PageFormat pf, int page) throws java.awt.print.PrinterException {
+	            if (page > 0) return NO_SUCH_PAGE;
+
+	            java.awt.Graphics2D g2d = (java.awt.Graphics2D) g;
+	            g2d.translate(pf.getImageableX(), pf.getImageableY());
+
+	            int y = 20; // Começa um pouco mais baixo para não grudar no corte
+	            int x = 0; 
+	            
+	            // Fontes Pré-definidas para facilitar
+	            java.awt.Font fonteTitulo = new java.awt.Font("SansSerif", java.awt.Font.BOLD, 12);
+	            java.awt.Font fonteNormal = new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10);
+	            java.awt.Font fonteNegrito = new java.awt.Font("SansSerif", java.awt.Font.BOLD, 11);
+	            java.awt.Font fonteGrande = new java.awt.Font("SansSerif", java.awt.Font.BOLD, 13);
+	            java.awt.Font fonteNome = new java.awt.Font("SansSerif", java.awt.Font.BOLD, 11);
+	            java.awt.Font fonteDivisoria = new java.awt.Font("Monospaced", java.awt.Font.PLAIN, 10);
+
+	            // --- CABEÇALHO ---
+	            g2d.setFont(fonteTitulo);
+	            // Centralização manual (ajuste fino para 80mm)
+	            g2d.drawString("   CASA DOS TUBOS", x, y); 
+	            y += 18;
+	            
+	            g2d.setFont(fonteDivisoria);
+	            g2d.drawString("---------------------------------", x, y); 
+	            y += 18;
+
+	            // --- PRODUTO ---
+	            g2d.setFont(fonteNormal);
+	            g2d.drawString("PRODUTO:", x, y); 
+	            y += 15;
+	            
+	            // Nome do Piso (Fonte Grande e com quebra de linha se precisar)
+	            g2d.setFont(fonteNome);
+	         // Quebra de linha automática (até 6 linhas)
+	            String nomePiso = Mostra_Nome_Piso.getText();
+	            int limitePorLinha = 22;
+	            
+	            for (int i = 0; i < 6; i++) {
+	                int inicio = i * limitePorLinha;
+	                
+	                // Se o inicio ja for maior que o texto, acabou.
+	                if (inicio >= nomePiso.length()) break; 
+	                
+	                int fim = Math.min(inicio + limitePorLinha, nomePiso.length());
+	                String pedaco = nomePiso.substring(inicio, fim);
+	                
+	                // Se for a última linha permitida (6ª) e ainda tiver mais texto, corta e põe "..."
+	                if (i == 5 && fim < nomePiso.length()) {
+	                    pedaco = nomePiso.substring(inicio, fim - 3) + "...";
+	                }
+	                
+	                g2d.drawString(pedaco, x + 5, y); 
+	                y += 16; // Pula para a próxima linha
+	            }
+
+	            g2d.setFont(fonteDivisoria);
+	            g2d.drawString("---------------------------------", x, y); 
+	            y += 18;
+
+	            // --- CÓDIGOS ---
+	            g2d.setFont(fonteGrande); // Negrito Grande
+	            g2d.drawString("COD ASSO: " + Mostra_Cod_Asso.getText(), x, y); 
+	            y += 18;
+	            
+	            g2d.setFont(fonteNormal);
+	            g2d.drawString("COD CTC : " + Mostra_Cod_CTC.getText(), x, y); 
+	            y += 20;
+
+	            g2d.setFont(fonteDivisoria);
+	            g2d.drawString("---------------------------------", x, y); 
+	            y += 18;
+
+	            // --- QUANTIDADES (O Mais Importante) ---
+	            g2d.setFont(fonteGrande);
+	            g2d.drawString("QTD PEDIR: " + Mostra_QTD_Pedir.getText() + " m²", x, y); 
+	            y += 20;
+	            
+	            g2d.drawString("QTD CAIXAS: " + Mostra_CX_Arredondado.getText() + " Caixa (s)", x, y); 
+	            y += 20;
+
+	            g2d.setFont(fonteDivisoria);
+	            g2d.drawString("---------------------------------", x, y); 
+	            y += 18;
+
+	            // --- ARGAMASSA E REJUNTE ---
+	            g2d.setFont(fonteGrande);
+	            g2d.drawString("Argamassa: " + Mostra_Sacos_Argamassa.getText() + " Saco (s)", x, y); 
+	            y += 18;
+	            g2d.drawString("Rejunte  : " + Mostra_Sacos_Rejunte.getText() + " Saco (s)", x, y); 
+	            y += 20;
+
+	            g2d.setFont(fonteDivisoria);
+	            g2d.drawString("---------------------------------", x, y); 
+	            y += 18;
+
+	            // --- DATA E RODAPÉ ---
+	            g2d.setFont(new java.awt.Font("SansSerif", java.awt.Font.ITALIC, 9));
+	            java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+	            g2d.drawString(java.time.LocalDateTime.now().format(dtf), x + 40, y); // Alinhado à direita/centro
+	            
+	            y += 20; // Espaço final
+
+	            // --- FORÇA COMPRIMENTO MÍNIMO (8cm = ~230 pixels) ---
+	            if (y < 250) {
+	                y = 250; 
+	            }
+	            g2d.drawString(".", x, y); // Ponto final para corte
+
+	            return PAGE_EXISTS;
+	        }
+	    }, pf);
+
+	    // 4. Manda bala
+	    try {
+	        job.print();
+	    } catch (java.awt.print.PrinterException ex) {
+	        javax.swing.JOptionPane.showMessageDialog(null, "Erro na impressão: " + ex.getMessage());
+	    }
+	}
+	
 }
