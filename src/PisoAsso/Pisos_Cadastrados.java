@@ -42,6 +42,9 @@ public class Pisos_Cadastrados extends JFrame {
 	private JTextField Tipo_Piso;
 	private JTextField PEI;
 	private JTextField Retificado;
+	private JButton Add_Piso_Fila;
+	private JLabel lblNewLabel_2;
+	private JTextField tf_Valor;
 
 	/**
 	 * Launch the application.
@@ -67,7 +70,7 @@ public class Pisos_Cadastrados extends JFrame {
 		setTitle("Piso Cadastrado");
 		setIconImage(Toolkit.getDefaultToolkit().getImage(Procura.CaminhoImagem+"\\Logo Casa dos Tubos 50_page-0001.jpg"));
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 1048, 554);
+		setBounds(100, 100, 1048, 583);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 
@@ -409,6 +412,49 @@ public class Pisos_Cadastrados extends JFrame {
 		Pesquisa.setBounds(460, 482, 156, 21);
 		contentPane.add(Pesquisa);
 		
+		Add_Piso_Fila = new JButton("Adicionar à impressão");
+		Add_Piso_Fila.addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent e) {
+		        String nome = Nome_Piso.getText();
+		        String asso = Cod_Asso.getText();
+		        String ctc = Cod_Loja.getText();
+		        String preco = "R$ "+tf_Valor.getText();
+		        String pei = PEI.getText();
+		        String m2 = M_CX.getText();
+		        String pcs = Peca_CX.getText();
+		        
+		        GerenciadorEtiquetas.adicionarNaFila(nome, asso, ctc, m2, pcs, pei, preco);
+		    }
+		});
+		Add_Piso_Fila.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 16));
+		Add_Piso_Fila.setBounds(10, 512, 220, 21);
+		contentPane.add(Add_Piso_Fila);
+		
+		JButton Imprimir_etiquetas = new JButton("Imprimir etiquetas");
+		Imprimir_etiquetas.addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent e) {
+		        GerenciadorEtiquetas.imprimirFilaArgox();
+		    }
+		});
+		Imprimir_etiquetas.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 16));
+		Imprimir_etiquetas.setBounds(240, 512, 210, 21);
+		contentPane.add(Imprimir_etiquetas);
+		
+		lblNewLabel_2 = new JLabel("Pisos na fila de impressão: "+GerenciadorEtiquetas.contarFila());
+		lblNewLabel_2.setHorizontalAlignment(SwingConstants.LEFT);
+		lblNewLabel_2.setBounds(460, 512, 322, 21);
+		contentPane.add(lblNewLabel_2);
+		
+		JLabel lblNewLabel_3 = new JLabel("Valor R$");
+		lblNewLabel_3.setHorizontalAlignment(SwingConstants.RIGHT);
+		lblNewLabel_3.setBounds(792, 512, 104, 21);
+		contentPane.add(lblNewLabel_3);
+		
+		tf_Valor = new JTextField();
+		tf_Valor.setBounds(906, 512, 104, 21);
+		contentPane.add(tf_Valor);
+		tf_Valor.setColumns(10);
+		
 	}
 	
 	public void pesquisar() {
@@ -571,5 +617,4 @@ public class Pisos_Cadastrados extends JFrame {
 		}
 			
 	}
-	
 }

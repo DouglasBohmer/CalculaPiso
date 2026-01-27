@@ -61,6 +61,7 @@ public class Cadastro extends JFrame {
 	private JRadioButton mm5;
 	private JLabel Tamanho;
 	private JButton Copia_Infos;
+	public static int fila =0;
 
 	/**
 	 * Launch the application.
@@ -105,13 +106,60 @@ public class Cadastro extends JFrame {
 		Botao_Volta_Tela_Inicial.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 16));
 		contentPane.add(Botao_Volta_Tela_Inicial);
 		
-		JButton Botao_Cadastra_Piso = new JButton("Cadastrar Piso");
+		JButton Botao_Cadastra_Piso = new JButton("Cadastrar Piso (" + GerenciadorEtiquetas.contarFila() + ")");
 		Botao_Cadastra_Piso.setBounds(400, 575, 198, 21);
 		Botao_Cadastra_Piso.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				cadastra_piso();
-				
-			}
+		    public void actionPerformed(ActionEvent e) {
+		        
+		        // 1. PEGAR OS DADOS ANTES DE TUDO (Enquanto os campos ainda estão preenchidos)
+		        String nomeSalvo = Nome_Piso.getText();
+		        String assoSalvo = Cod_Asso.getText();
+		        String lojaSalvo = Cod_Loja.getText(); // ou Cod_CTC dependendo do nome do seu campo
+		        String mcxSalvo  = M_CX.getText();
+		        String precoSalvo = "R$ " + Valor_Desc.getText();
+		        
+		        // Lógica do PEI
+		        String peiSalvo = "";
+		        if (LA.isSelected()) peiSalvo = "LA";
+		        else if (LB.isSelected()) peiSalvo = "LA, LB";
+		        else if (LC.isSelected()) peiSalvo = "LA, LB, LC";
+		        else if (LD.isSelected()) peiSalvo = "LA, LB, LC, LD";
+		        else if (LE.isSelected()) peiSalvo = "LA, LB, LC, LD, LE";
+
+		        // Lógica de Cálculo (Blindada contra erro de campo vazio)
+		        String peca_caixas = "0";
+		        try {
+		            double alt = Double.parseDouble(Altura.getText().replace(",", "."));
+		            double larg = Double.parseDouble(Largura.getText().replace(",", "."));
+		            double metros_caixa = Double.parseDouble(M_CX.getText().replace(",", "."));
+		            
+		            if (alt > 0 && larg > 0) {
+		                double result = metros_caixa / ((alt / 100) * (larg / 100));
+		                peca_caixas = new DecimalFormat("#0").format(result);
+		            }
+		        } catch (Exception ex) {
+		            // Se der erro no calculo (campo vazio), define como zero mas não trava o sistema
+		            peca_caixas = "0";
+		        }
+
+		        // 2. TENTA CADASTRAR NO BANCO
+		        // Se o cadastra_piso() der erro, o código para aqui e não adiciona na fila (o que é bom)
+		        cadastra_piso();
+		        
+		        // 3. ADICIONA NA FILA (Usando as variáveis que salvamos no passo 1)
+		        GerenciadorEtiquetas.adicionarNaFila(
+		            nomeSalvo,
+		            assoSalvo,
+		            lojaSalvo,
+		            mcxSalvo, 
+		            peca_caixas,
+		            peiSalvo,
+		            precoSalvo
+		        );
+		        
+		        // 4. ATUALIZA O TEXTO DO BOTÃO (Para mostrar o novo número)
+		        Botao_Cadastra_Piso.setText("Cadastrar Piso (" + GerenciadorEtiquetas.contarFila() + ")");
+		    }
 		});
 		Botao_Cadastra_Piso.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 16));
 		contentPane.add(Botao_Cadastra_Piso);
@@ -360,7 +408,6 @@ public class Cadastro extends JFrame {
 		
 		Valor_Desc = new JTextField();
 		Valor_Desc.setForeground(new Color(255, 0, 0));
-		Valor_Desc.setEditable(false);
 		Valor_Desc.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 14));
 		Valor_Desc.setHorizontalAlignment(SwingConstants.CENTER);
 		Valor_Desc.setBounds(43, 606, 70, 20);

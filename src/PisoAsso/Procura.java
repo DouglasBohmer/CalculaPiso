@@ -970,33 +970,33 @@ public class Procura extends JFrame {
 			
 		});
 		BT_Whats.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 18));
-		BT_Whats.setBounds(779, 206, 240, 35);
+		BT_Whats.setBounds(779, 184, 240, 35);
 		contentPane.add(BT_Whats);
 		
 		JLabel LB_Valor = new JLabel("R$ por m²");
 		LB_Valor.setHorizontalAlignment(SwingConstants.CENTER);
 		LB_Valor.setForeground(Color.BLACK);
 		LB_Valor.setFont(new Font("Arial", Font.PLAIN, 16));
-		LB_Valor.setBounds(779, 143, 115, 20);
+		LB_Valor.setBounds(779, 121, 115, 20);
 		contentPane.add(LB_Valor);
 		
 		JLabel LB_Telefone = new JLabel("Telefone");
 		LB_Telefone.setHorizontalAlignment(SwingConstants.CENTER);
 		LB_Telefone.setForeground(Color.BLACK);
 		LB_Telefone.setFont(new Font("Arial", Font.PLAIN, 16));
-		LB_Telefone.setBounds(904, 143, 115, 20);
+		LB_Telefone.setBounds(904, 121, 115, 20);
 		contentPane.add(LB_Telefone);
 		
 		FTF_Valor = new JFormattedTextField();
 		FTF_Valor.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 16));
 		FTF_Valor.setHorizontalAlignment(SwingConstants.CENTER);
-		FTF_Valor.setBounds(779, 174, 115, 20);
+		FTF_Valor.setBounds(779, 152, 115, 20);
 		contentPane.add(FTF_Valor);
 		
 		FTF_Telefone = new JFormattedTextField(Mascara("(##) #####-####"));
 		FTF_Telefone.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 13));
 		FTF_Telefone.setHorizontalAlignment(SwingConstants.CENTER);
-		FTF_Telefone.setBounds(904, 174, 115, 20);
+		FTF_Telefone.setBounds(904, 152, 115, 20);
 		contentPane.add(FTF_Telefone);
 		
 		JLabel lblNewLabel_1_1_1_6_2 = new JLabel("Dados da Pesquisa");
@@ -1049,7 +1049,7 @@ public class Procura extends JFrame {
 		lblNewLabel_1_1_1_6_2_1_1.setHorizontalAlignment(SwingConstants.CENTER);
 		lblNewLabel_1_1_1_6_2_1_1.setForeground(Color.BLACK);
 		lblNewLabel_1_1_1_6_2_1_1.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 20));
-		lblNewLabel_1_1_1_6_2_1_1.setBounds(779, 90, 240, 48);
+		lblNewLabel_1_1_1_6_2_1_1.setBounds(779, 90, 240, 20);
 		contentPane.add(lblNewLabel_1_1_1_6_2_1_1);
 		
 		Mostra_Local_Uso = new JTextArea();
@@ -1100,6 +1100,25 @@ public class Procura extends JFrame {
 		Botao_Imprimir.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 18));
 		Botao_Imprimir.setBounds(22, 198, 323, 35);
 		contentPane.add(Botao_Imprimir);
+		
+		JButton BT_Add_Etiqueta = new JButton("Adicionar Etiqueta");
+		BT_Add_Etiqueta.addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent e) {
+		        
+		        GerenciadorEtiquetas.adicionarNaFila(
+		        	Mostra_Nome_Piso.getText(),
+		            Mostra_Cod_Asso.getText(),
+		            Mostra_Cod_CTC.getText(),
+		            Mostra_M_CX.getText(), 
+		            Mostra_Peca_CX.getText(),
+		            Mostra_Pei.getText(),
+		            "R$ "+FTF_Valor.getText()
+		        );
+		    }
+		});
+		BT_Add_Etiqueta.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 18));
+		BT_Add_Etiqueta.setBounds(779, 232, 240, 25);
+		contentPane.add(BT_Add_Etiqueta);
 			
 	}
 	
