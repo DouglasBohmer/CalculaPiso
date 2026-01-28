@@ -424,7 +424,10 @@ public class Pisos_Cadastrados extends JFrame {
 		        String pcs = Peca_CX.getText();
 		        
 		        GerenciadorEtiquetas.adicionarNaFila(nome, asso, ctc, m2, pcs, pei, preco);
+		        
+		        lblNewLabel_2.setText("Pisos na fila de impressão: " + GerenciadorEtiquetas.contarFila());
 		    }
+		        
 		});
 		Add_Piso_Fila.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 16));
 		Add_Piso_Fila.setBounds(10, 512, 220, 21);
@@ -434,6 +437,7 @@ public class Pisos_Cadastrados extends JFrame {
 		Imprimir_etiquetas.addActionListener(new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
 		        GerenciadorEtiquetas.imprimirFilaArgox();
+		        lblNewLabel_2.setText("Pisos na fila de impressão: " + GerenciadorEtiquetas.contarFila());
 		    }
 		});
 		Imprimir_etiquetas.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 16));

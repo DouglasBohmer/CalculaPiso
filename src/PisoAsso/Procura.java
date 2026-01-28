@@ -103,7 +103,7 @@ public class Procura extends JFrame {
 	private double altura;
 	private double largura;
 	private double area_pc;
-	private double pecas_cx;
+	private int pecas_cx;
 	private double m_caixas;
 	private double cx_exatas;
 	private double m_cliente;
@@ -1138,7 +1138,7 @@ public class Procura extends JFrame {
 	            altura = Double.parseDouble(rs.getString("altura"));
 	            largura = Double.parseDouble(rs.getString("largura"));
 	            rejunte = Double.parseDouble(rs.getString("rejunte"));
-	            pecas_cx = Double.parseDouble(rs.getString("pecas_cx"));
+	            pecas_cx = Integer.parseInt(rs.getString("pecas_cx"));
 	            m_caixas = Double.parseDouble(rs.getString("m_cx")); // Usando m_cx do banco
 	            
 	            cod_asso_banco = rs.getString("cod_asso");
