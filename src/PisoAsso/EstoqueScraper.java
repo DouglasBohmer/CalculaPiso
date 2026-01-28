@@ -3,6 +3,7 @@ package PisoAsso;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements; // Import novo adicionado
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeDriverService;
@@ -84,8 +85,24 @@ public class EstoqueScraper {
                     Element nomeElement = doc.selectFirst("div.product-name > div:first-child");
                     nome = (nomeElement != null) ? nomeElement.text().trim().replaceAll("- 1xM2", "").trim() : "Sem Nome";
                     
-                    Element valorElement = doc.selectFirst("span[data-toggle='popover'][data-trigger='hover']");
-                    valor = (valorElement != null) ? valorElement.text().trim().replace("R$", "").trim() : "0,00";
+                    // --- NOVA LÓGICA DE PREÇO (Início) ---
+                    valor = "0,00"; // Reseta o valor
+                    
+                    // Busca qualquer elemento que contenha texto "R$" diretamente nele
+                    Elements precosEncontrados = doc.getElementsContainingOwnText("R$");
+                    
+                    if (precosEncontrados != null) {
+                        for (Element el : precosEncontrados) {
+                            String texto = el.text().trim();
+                            // Verifica se o texto tem formato de dinheiro (contém números e vírgula)
+                            // Exemplo: "R$ 32,29" ou "Por: R$ 32,29"
+                            if (texto.matches(".*\\d+,\\d{2}.*")) {
+                                valor = texto.replace("R$", "").trim();
+                                break; // Para no primeiro preço válido encontrado
+                            }
+                        }
+                    }
+                    // --- NOVA LÓGICA DE PREÇO (Fim) ---
                     
                     return 1;
                 } else {

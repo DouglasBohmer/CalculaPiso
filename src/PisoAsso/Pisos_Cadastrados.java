@@ -442,7 +442,7 @@ public class Pisos_Cadastrados extends JFrame {
 		
 		lblNewLabel_2 = new JLabel("Pisos na fila de impressão: "+GerenciadorEtiquetas.contarFila());
 		lblNewLabel_2.setHorizontalAlignment(SwingConstants.LEFT);
-		lblNewLabel_2.setBounds(460, 512, 322, 21);
+		lblNewLabel_2.setBounds(460, 512, 279, 21);
 		contentPane.add(lblNewLabel_2);
 		
 		JLabel lblNewLabel_3 = new JLabel("Valor R$");
@@ -454,6 +454,26 @@ public class Pisos_Cadastrados extends JFrame {
 		tf_Valor.setBounds(906, 512, 104, 21);
 		contentPane.add(tf_Valor);
 		tf_Valor.setColumns(10);
+		
+		JButton Limpar_Fila = new JButton("Limpar Fila");
+        Limpar_Fila.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int resposta = JOptionPane.showConfirmDialog(null, 
+                        "Tem certeza que deseja apagar todas as etiquetas da fila?", 
+                        "Limpar Fila", 
+                        JOptionPane.YES_NO_OPTION);
+                
+                if (resposta == JOptionPane.YES_OPTION) {
+                    // Chama o método que criamos no Passo 1
+                    GerenciadorEtiquetas.limparFila();
+                    JOptionPane.showMessageDialog(null, "A fila de impressão foi limpa!");
+                }
+                lblNewLabel_2.setText("Pisos na fila de impressão: " + GerenciadorEtiquetas.contarFila());
+            }
+        });
+        Limpar_Fila.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 16));
+        Limpar_Fila.setBounds(626, 512, 156, 21);
+        contentPane.add(Limpar_Fila);
 		
 	}
 	

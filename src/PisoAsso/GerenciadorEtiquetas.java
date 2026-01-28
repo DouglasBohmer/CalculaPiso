@@ -260,4 +260,16 @@ public class GerenciadorEtiquetas {
         }
         return linhas;
     }
+
+ // Adicionar dentro de GerenciadorEtiquetas.java
+    public static void limparFila() {
+        try {
+            // Ao usar FileWriter com 'false', ele sobrescreve o arquivo em branco
+            FileWriter fw = new FileWriter(ARQUIVO_JSON, false);
+            fw.close();
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Erro ao limpar a fila: " + e.getMessage());
+        }
+    }
+
 }
