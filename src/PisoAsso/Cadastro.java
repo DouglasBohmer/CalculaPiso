@@ -62,6 +62,7 @@ public class Cadastro extends JFrame {
 	private JLabel Tamanho;
 	private JButton Copia_Infos;
 	public static int fila =0;
+	private JButton Botao_Cadastra_Piso;
 
 	/**
 	 * Launch the application.
@@ -106,7 +107,7 @@ public class Cadastro extends JFrame {
 		Botao_Volta_Tela_Inicial.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 16));
 		contentPane.add(Botao_Volta_Tela_Inicial);
 		
-		JButton Botao_Cadastra_Piso = new JButton("Cadastrar Piso (" + GerenciadorEtiquetas.contarFila() + ")");
+		Botao_Cadastra_Piso = new JButton("Cadastrar Piso (" + GerenciadorEtiquetas.contarFila() + ")");
 		Botao_Cadastra_Piso.setBounds(400, 575, 198, 21);
 		Botao_Cadastra_Piso.addActionListener(new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
@@ -157,7 +158,6 @@ public class Cadastro extends JFrame {
 		            precoSalvo
 		        );
 		        
-		        // 4. ATUALIZA O TEXTO DO BOTÃO (Para mostrar o novo número)
 		        Botao_Cadastra_Piso.setText("Cadastrar Piso (" + GerenciadorEtiquetas.contarFila() + ")");
 		    }
 		});
@@ -439,6 +439,7 @@ public class Cadastro extends JFrame {
 		Copia_Infos.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				copiar();
+		        try { java.awt.Desktop.getDesktop().browse(new java.net.URI("https://www.google.com/search?q=" + java.net.URLEncoder.encode(Nome_Piso.getText(), "UTF-8"))); } catch (Exception ex) {}
 			}
 		});
 		Copia_Infos.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 14));
@@ -775,7 +776,7 @@ public class Cadastro extends JFrame {
 			if (resultado == 1) {
 				Nome_Piso.setText(EstoqueScraper.nome);
 				Bruto.setText(EstoqueScraper.valor);
-				
+				M_CX.setText(EstoqueScraper.multiplo);
 				//JOptionPane.showMessageDialog(null, ""+EstoqueScraper.status);
 				
 				//System.out.println("Informações do site encontradas e preenchidas.");

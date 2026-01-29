@@ -42,6 +42,7 @@ public class EstoqueScraper {
     public static String status = "N/D";
     public static String nome = "";
     public static String valor = "0,00"; 
+    public static String multiplo = "0";
     public static boolean produtoNaoEncontrado = false;
     
     private static final String[] CODIGOS_TESTE = {"2176596", "3989", "2177133"};
@@ -76,6 +77,10 @@ public class EstoqueScraper {
                 Element multiploLabel = doc.selectFirst("b:matchesOwn(^Múltiplo:)");
 
                 if (multiploLabel != null) {
+                    // --- NOVA CAPTURA AQUI ---
+                    // Pega o texto logo depois do <b>Múltiplo:</b> e troca vírgula por ponto
+                    multiplo = multiploLabel.nextSibling().toString().trim().replace(",", ".");
+
                     Element estoqueLabel = doc.selectFirst("b:matchesOwn(^Estoque:)");
                     estoque = (estoqueLabel != null) ? estoqueLabel.nextSibling().toString().trim().replace(",", ".") : "0";
 
@@ -85,24 +90,8 @@ public class EstoqueScraper {
                     Element nomeElement = doc.selectFirst("div.product-name > div:first-child");
                     nome = (nomeElement != null) ? nomeElement.text().trim().replaceAll("- 1xM2", "").trim() : "Sem Nome";
                     
-                    // --- NOVA LÓGICA DE PREÇO (Início) ---
-                    valor = "0,00"; // Reseta o valor
-                    
-                    // Busca qualquer elemento que contenha texto "R$" diretamente nele
-                    Elements precosEncontrados = doc.getElementsContainingOwnText("R$");
-                    
-                    if (precosEncontrados != null) {
-                        for (Element el : precosEncontrados) {
-                            String texto = el.text().trim();
-                            // Verifica se o texto tem formato de dinheiro (contém números e vírgula)
-                            // Exemplo: "R$ 32,29" ou "Por: R$ 32,29"
-                            if (texto.matches(".*\\d+,\\d{2}.*")) {
-                                valor = texto.replace("R$", "").trim();
-                                break; // Para no primeiro preço válido encontrado
-                            }
-                        }
-                    }
-                    // --- NOVA LÓGICA DE PREÇO (Fim) ---
+                    Element valorElement = doc.selectFirst("span[data-toggle='popover'][data-trigger='hover']");
+                    valor = (valorElement != null) ? valorElement.text().trim().replace("R$", "").trim() : "0,00";
                     
                     return 1;
                 } else {
@@ -116,8 +105,6 @@ public class EstoqueScraper {
         return 0;
     }
     
-    // --- LÓGICA DO NOVO LOGIN (REMOTE DEBUGGING) ---
-
     private static String getChromePath() {
         String[] possiblePaths = {
             "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
@@ -182,7 +169,6 @@ public class EstoqueScraper {
         JOptionPane.showMessageDialog(null, panel, "Erro Driver", JOptionPane.ERROR_MESSAGE);
     }
     
-    // MÉTODO NOVO: Verifica se a porta 9222 está aberta em no máximo 1 segundo
     private static boolean isChromeDebugOpen() {
         try (Socket socket = new Socket()) {
             socket.connect(new InetSocketAddress("127.0.0.1", 9222), 1000); // 1000ms = 1 segundo de timeout
