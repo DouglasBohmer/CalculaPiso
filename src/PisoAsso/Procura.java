@@ -145,6 +145,7 @@ public class Procura extends JFrame {
 	private JDialog dialogEspera;
 	private Timer timerVerificacao;
 	private long lastModifiedTime;
+	private boolean loginConcluido = false; // VARIÁVEL ADICIONADA AQUI
 	
 	double estoque_cor;
 	String status_cor;
@@ -889,7 +890,7 @@ public class Procura extends JFrame {
 	}
 	
 	// =========================================================================================
-	//  NOVA LÓGICA DE LOGIN (CORRIGIDA)
+	//  NOVA LÓGICA DE LOGIN (COM OPÇÃO DE CANCELAMENTO E DESBLOQUEIO)
 	// =========================================================================================
 	public void iniciarRotinaDeLogin() {
 	    File arquivoCookie = new File(EstoqueScraper.COOKIE_PATH);
@@ -902,16 +903,44 @@ public class Procura extends JFrame {
 	    EstoqueScraper.abrirNavegadorApenas();
 
 	    dialogEspera = new JDialog(this, "Aguardando Login", true); 
-	    dialogEspera.setSize(400, 200);
+	    dialogEspera.setSize(400, 220); // Aumentei um pouco a altura para caber o botão
 	    dialogEspera.setLayout(new BorderLayout());
 	    dialogEspera.setLocationRelativeTo(this);
-	    dialogEspera.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE); 
+	    
+	    // PERMITE FECHAR NO 'X' PARA NÃO TRAVAR O SISTEMA
+	    dialogEspera.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE); 
+	    loginConcluido = false;
 
 	    JLabel lblAviso = new JLabel("<html><center><h2>Faça o Login no Chrome...</h2><br>"
 	            + "Por favor, realize o login e o captcha na janela do navegador.<br>"
 	            + "O sistema detectará automaticamente quando terminar.</center></html>");
 	    lblAviso.setHorizontalAlignment(SwingConstants.CENTER);
 	    dialogEspera.add(lblAviso, BorderLayout.CENTER);
+
+	    // BOTÃO CANCELAR LOGIN
+	    JButton btnCancelar = new JButton("Cancelar Login");
+	    btnCancelar.setFont(new Font("Arial", Font.BOLD, 14));
+	    btnCancelar.addActionListener(new ActionListener() {
+	        public void actionPerformed(ActionEvent e) {
+	            dialogEspera.dispose(); // Isso chama o evento windowClosed abaixo
+	        }
+	    });
+	    dialogEspera.add(btnCancelar, BorderLayout.SOUTH);
+
+	    // EVENTO: SE A JANELA FOR FECHADA (Seja pelo botão ou pelo 'X')
+	    dialogEspera.addWindowListener(new java.awt.event.WindowAdapter() {
+	        @Override
+	        public void windowClosed(java.awt.event.WindowEvent windowEvent) {
+	            if (timerVerificacao != null) {
+	                timerVerificacao.stop();
+	            }
+	            // Só exibe mensagem se fechou sem conseguir o cookie
+	            if (!loginConcluido) {
+	                EstoqueScraper.fecharChrome();
+	                JOptionPane.showMessageDialog(null, "Login cancelado.");
+	            }
+	        }
+	    });
 
 	    timerVerificacao = new Timer(1000, new ActionListener() {
 	        @Override
@@ -922,7 +951,7 @@ public class Procura extends JFrame {
 	    });
 	    timerVerificacao.start();
 
-	    dialogEspera.setVisible(true);
+	    dialogEspera.setVisible(true); // Fica aqui até a janela sumir
 	}
 
 	private void verificarSeArquivoMudou() {
@@ -930,14 +959,21 @@ public class Procura extends JFrame {
 	    if (arquivoCookie.exists()) {
 	        long currentModified = arquivoCookie.lastModified();
 	        
-	        // Se o arquivo foi modificado DEPOIS que abrimos a janela, o login deu certo!
+	        // Se o login passou!
 	        if (currentModified > lastModifiedTime) {
-	            
-	            // 1. Para o loop de verificação
+	            loginConcluido = true; 
 	            timerVerificacao.stop();
 	            
-	            // CORREÇÃO 3: Cria um delay de 1 segundo (1000ms) para o usuário ver que concluiu 
-	            // antes de fechar tudo e fazer a busca. Isso roda sem congelar a tela.
+	            // Muda o texto da tela pra dar feedback
+	            JLabel aviso = (JLabel) dialogEspera.getContentPane().getComponent(0);
+	            aviso.setText("<html><center><h2>Login Identificado!</h2><br>Retornando ao sistema...</center></html>");
+	            
+	            // Esconde o botão cancelar para não clicarem atoa
+	            Component[] comps = dialogEspera.getContentPane().getComponents();
+	            for(Component c : comps) {
+	                if(c instanceof JButton) c.setVisible(false);
+	            }
+
 	            Timer delayTimer = new Timer(1000, new ActionListener() {
 	                @Override
 	                public void actionPerformed(ActionEvent evt) {
@@ -947,12 +983,8 @@ public class Procura extends JFrame {
 	                    realizarPesquisa();
 	                }
 	            });
-	            delayTimer.setRepeats(false); // Executa só uma vez
+	            delayTimer.setRepeats(false); 
 	            delayTimer.start();
-	            
-	            // Só por feedback visual rápido na caixinha de aviso
-	            JLabel aviso = (JLabel) dialogEspera.getContentPane().getComponent(0);
-	            aviso.setText("<html><center><h2>Login Identificado!</h2><br>Retornando ao sistema...</center></html>");
 	        }
 	    }
 	}
