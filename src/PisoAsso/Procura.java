@@ -20,12 +20,14 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
 import javax.swing.JTextField;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JRadioButton;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -40,12 +42,15 @@ import javax.swing.AbstractButton;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputFilter.Status;
 import java.io.UnsupportedEncodingException;
 import java.awt.event.KeyAdapter;
 import javax.swing.JFormattedTextField;
 import javax.swing.border.LineBorder;
+import javax.swing.Timer;
+import javax.swing.WindowConstants;
 
 import java.awt.Color;
 import java.util.logging.Level;
@@ -55,8 +60,8 @@ import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.JTextArea;
-import java.math.BigDecimal; // <-- Adicionar esta linha
-import java.math.RoundingMode; // <-- Adicionar esta linha
+import java.math.BigDecimal; 
+import java.math.RoundingMode; 
 
 import java.awt.print.PrinterJob;
 import java.awt.print.PrinterException;
@@ -73,8 +78,6 @@ public class Procura extends JFrame {
 	private JPanel contentPane;
 		
 	public static String CaminhoImagem = "\\\\USUARIO-PC\\arquivos compartilhados\\Calcula Piso\\PisoAsso\\Extras\\Imagens"; //PC Loja
-	//public static String CaminhoImagem = "C:\\\\Users\\ctcja\\OneDrive\\Área de Trabalho\\Programação\\PisoAsso\\Extras\\Imagens"; //PC Particular
-	//public static String CaminhoBD = ""; //PC Particular
 	public static String CaminhoBD = "jdbc:mysql://192.168.0.157:3306/calcula_piso"; //PC Loja
 	
 	private JTextField Pesquisa_Cod_Piso;
@@ -139,35 +142,16 @@ public class Procura extends JFrame {
 	private boolean cookieValidado = false;
 	private JLabel lblStatus;
 	
+	private JDialog dialogEspera;
+	private Timer timerVerificacao;
+	private long lastModifiedTime;
+	
 	double estoque_cor;
 	String status_cor;
-	/**
-	 * Launch the application.
-	 * @throws UnsupportedLookAndFeelException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 * @throws ClassNotFoundException 
-	 */
+	
 	public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
 		
-			//Modelos
-		
-		//UIManager.setLookAndFeel("com.jtattoo.plaf.acryl.AcrylLookAndFeel"); // 
-		//UIManager.setLookAndFeel("com.jtattoo.plaf.aero.AeroLookAndFeel"); //
-		//UIManager.setLookAndFeel("com.jtattoo.plaf.bernstein.BernsteinLookAndFeel"); //
-		//UIManager.setLookAndFeel("com.jtattoo.plaf.fast.FastLookAndFeel"); //
-		//UIManager.setLookAndFeel("com.jtattoo.plaf.graphite.GraphiteLookAndFeel"); //
-		//UIManager.setLookAndFeel("com.jtattoo.plaf.hifi.HiFiLookAndFeel"); //
-		//UIManager.setLookAndFeel("com.jtattoo.plaf.mcwin.McWinLookAndFeel"); // Igual o Mac
-		//UIManager.setLookAndFeel("com.jtattoo.plaf.noire.NoireLookAndFeel"); // preto
-		//UIManager.setLookAndFeel("com.jtattoo.plaf.smart.SmartLookAndFeel"); //
-		//UIManager.setLookAndFeel("com.jtattoo.plaf.texture.TextureLookAndFeel"); //
-		
-			//Modelos que mais gostamos
-		
-		UIManager.setLookAndFeel("com.jtattoo.plaf.mint.MintLookAndFeel");   // Verdinho, o que a gente mais gostou
-		//UIManager.setLookAndFeel("com.jtattoo.plaf.luna.LunaLookAndFeel"); // é ok
-		//UIManager.setLookAndFeel("com.jtattoo.plaf.aluminium.AluminiumLookAndFeel"); // Alumínio
+		UIManager.setLookAndFeel("com.jtattoo.plaf.mint.MintLookAndFeel");   
 		
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -183,9 +167,6 @@ public class Procura extends JFrame {
 		});
 	}
 
-	/**
-	 * Create the frame.
-	 */
 	public Procura() {
 		setTitle("Calcula Piso");		
 		setIconImage(Toolkit.getDefaultToolkit().getImage(CaminhoImagem+"\\Logo Casa dos Tubos 50_page-0001.jpg"));
@@ -201,26 +182,12 @@ public class Procura extends JFrame {
 		JButton Botao_Cadastro = new JButton("");
 		Botao_Cadastro.setIcon(new ImageIcon(CaminhoImagem+"\\+.png"));
 		Botao_Cadastro.setBounds(889, 618, 60, 35);
-		//Botao_Cadastro.setBorder(new RoundedBorder(10));
 		Botao_Cadastro.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				
-				/*double senha = 1409;
-				String resposta = JOptionPane.showInputDialog("Digite a senha: ");
-				double senha_digitada = Double.parseDouble(resposta);
-				
-				if(senha == senha_digitada) {
-				*/
 				Cadastro TelaCad = new Cadastro();
 				TelaCad.setLocationRelativeTo(null);
 				TelaCad.setVisible(true);
-			
 				dispose();
-				/*
-				}else{
-					JOptionPane.showMessageDialog(null, "Senha incorreta!");
-				}*/
-				
 			}
 		});
 		
@@ -229,48 +196,20 @@ public class Procura extends JFrame {
 		Cadastrados.setBounds(959, 618, 60, 35);
 		Cadastrados.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				
 				Pisos_Cadastrados TelaPisoCad = new Pisos_Cadastrados();
 				TelaPisoCad.setLocationRelativeTo(null);
 				TelaPisoCad.setVisible(true);
-			
 				dispose();
-				
 			}
 		});
 		
 		JButton BT_Voltar = new JButton("");
-		BT_Voltar.setEnabled(false);
+		BT_Voltar.setEnabled(true);
+		BT_Voltar.setToolTipText("Refazer Login");
 		BT_Voltar.setIcon(new ImageIcon(CaminhoImagem+"\\Recarregar.png"));
 		BT_Voltar.addActionListener(new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
-
-		        JOptionPane.showMessageDialog(null, 
-		            "Por favor aguarde até que o script seja finalizado!\n\nO computador ficará bloqueado durante o processo.\n\nPrecione 'OK' para iniciar.");
-
-		        try {
-		            String scriptPath = "\\\\Usuario-pc\\arquivos compartilhados\\Calcula Piso\\PisoAsso\\Extras\\login+cookie.ahk";
-		            	
-		           Runtime.getRuntime().exec(new String[] {"AutoHotkeyU64.exe", scriptPath});
-		            
-		            /*
-		            Process processo = new ProcessBuilder(
-		                    "C:\\Arquivos de Programas\\AutoHotkey\\v1.1.37.02\\AutoHotkeyU64.exe",
-		                    scriptPath)
-		                    .inheritIO()
-		                    .start();
-
-		            processo.waitFor();
-					*/
-		            
-		            JOptionPane.showMessageDialog(null, "Computador liberado!");
-		            	            
-		            
-		        } catch (Exception ex) {
-		            JOptionPane.showMessageDialog(null, "Por favor falar com o Douglas e avisar que teve erro ao executar o script AHK: " + ex.getMessage());
-		            ex.printStackTrace();
-		        }
-
+		        iniciarRotinaDeLogin();
 		    }
 		});
 
@@ -280,13 +219,13 @@ public class Procura extends JFrame {
 		
 		txtltimaAtt = new JTextField();
 		txtltimaAtt.setBackground(new Color(240, 240, 240));
-		txtltimaAtt.setText("Última att: 08/10/25  - 11h");
+		txtltimaAtt.setText("Última att: 17/02/26");
 		txtltimaAtt.setHorizontalAlignment(SwingConstants.CENTER);
 		txtltimaAtt.setFont(new Font("Arial", Font.PLAIN, 8));
 		txtltimaAtt.setEditable(false);
 		txtltimaAtt.setColumns(10);
 		txtltimaAtt.setBounds(819, 664, 200, 16);
-		txtltimaAtt.setFocusable(true); // habilita focar
+		txtltimaAtt.setFocusable(true); 
 		contentPane.add(txtltimaAtt);
 		Cadastrados.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 18));
 		contentPane.add(Cadastrados);
@@ -308,7 +247,6 @@ public class Procura extends JFrame {
 			@Override
 			public void focusGained(FocusEvent e) {
 				Pesquisa_Cod_Piso.setText("");
-								
 			}
 		});
 		Pesquisa_Cod_Piso.setText("0");
@@ -355,13 +293,9 @@ public class Procura extends JFrame {
 		Botao_Pesquisar.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					
 					JOptionPane.showMessageDialog(null, "Teste");
-					
 				}
-				
 			}
 		});
 		Botao_Pesquisar.setMnemonic(KeyEvent.VK_S);
@@ -369,9 +303,8 @@ public class Procura extends JFrame {
 		Botao_Pesquisar.addActionListener(new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
 
-		        // Validações iniciais
 		        if (VerificaCodigo(Pesquisa_Cod_Piso.getText())) {
-		            JOptionPane.showMessageDialog(null, "Campo de pesquisa do código está vázio! Digite algo para pesquisar");
+		            JOptionPane.showMessageDialog(null, "Campo de pesquisa do código está vazio! Digite algo para pesquisar");
 		            return;
 		        }
 		        if (VerificaValor(Pesquisa_M_Cliente.getText(), Pesquisa_CX_Cliente.getText())) {
@@ -379,159 +312,20 @@ public class Procura extends JFrame {
 		            return;
 		        }
 
-		        // VALIDAÇÃO DE COOKIE (apenas na primeira busca)
-		        if (!cookieValidado) {
-		            try {
-		                if (!EstoqueScraper.validarCookie()) {
-		                    int resposta = JOptionPane.showConfirmDialog(null, 
-		                        "Não foi possível validar o acesso ao sistema.\nDeseja fazer login agora?", 
-		                        "Login Necessário", 
-		                        JOptionPane.YES_NO_OPTION);
-		                    
-		                    if (resposta == JOptionPane.YES_OPTION) {
-		                        EstoqueScraper.realizarLoginESalvarCookie();
-		                        cookieValidado = true; // Marca como validado após login
-		                        JOptionPane.showMessageDialog(null, "Login concluído. Buscando estoque...");
-		                    }
-		                    //return; // Para a execução aqui
-		                } else {
-		                    cookieValidado = true; // Marca como validado
-		                    //System.out.println("Cookie validado com sucesso!");
-		                }
-		            } catch (IOException ex) {
-		                JOptionPane.showMessageDialog(null, 
-		                    "Erro ao validar acesso: " + ex.getMessage(), 
-		                    "Erro", 
-		                    JOptionPane.ERROR_MESSAGE);
-		                return;
+		        try {
+		            boolean cookieOk = EstoqueScraper.validarCookie();
+		            
+		            if (cookieOk) {
+		            	cookieValidado = true;
+		            	realizarPesquisa(); 
+		            } else {
+		            	iniciarRotinaDeLogin();
 		            }
+		            
+		        } catch (IOException ex) {
+		             iniciarRotinaDeLogin();
 		        }
-
-		        // Pega os valores de entrada
-		        m_cliente = Double.parseDouble(Pesquisa_M_Cliente.getText().replace(",", "."));
-		        cx_cliente = Double.parseDouble(Pesquisa_CX_Cliente.getText().replace(",", "."));
-
-		        apagar();
-
-		     // Carrega dados do banco
-		     if (carregarDadosDoPiso()) {
-		         
-		         // Verifica se deve buscar estoque no site ANTES de calcular/mostrar
-		    	 boolean temCodAsso = cod_asso_banco != null && !cod_asso_banco.isEmpty();
-
-		    	 if (temCodAsso) {
-		    	     // Produto tem código Asso, DEVE buscar no site primeiro usando o cod_asso
-		    	     try {
-		    	         int resultado = EstoqueScraper.buscarEstoque(cod_asso_banco); // USA O CÓDIGO DO BANCO!
-		                 
-		                 if (resultado == 1) {
-		                     // Produto encontrado no site
-		                     BTEstoque_Asso.setText(EstoqueScraper.estoque);
-		                     Status_Asso.setText(EstoqueScraper.status);
-		                 } else if (resultado == 2) {
-		                     // Cookie válido mas produto fora de linha
-		                     BTEstoque_Asso.setText("-");
-		                     Status_Asso.setText("Fora de linha");
-		                   
-		                     lblStatus.setIcon(new ImageIcon(CaminhoImagem+"\\Circulo Laranja.png"));
-		                     JOptionPane.showMessageDialog(null, "Produto fora de linha!");
-		                     
-		                 } else if (resultado == 0) {
-		                     // Cookie inválido - não deveria acontecer após validação
-		                     cookieValidado = false;
-		                     JOptionPane.showMessageDialog(null, 
-		                         "Sessão expirou. Por favor, pesquise novamente para refazer o login.");
-		                     return;
-		                 }
-		                 
-		             } catch (IOException e1) {
-		                 JOptionPane.showMessageDialog(null, 
-		                     "Erro ao buscar estoque: " + e1.getMessage(), 
-		                     "Erro", 
-		                     JOptionPane.ERROR_MESSAGE);
-		                 e1.printStackTrace();
-		                 return;
-		             }
-		         } else {
-		             // Produto só tem código da loja, não busca no site
-		             BTEstoque_Asso.setText("-");
-		             Status_Asso.setText("Produto local");
-		             
-		             status_cor = Status_Asso.getText();
-						
-						if(status_cor.equals("Produto local")) {
-
-							lblStatus.setIcon(new ImageIcon(CaminhoImagem+"\\Circulo Verde.png"));
-						}
-		             
-		         }
-		         
-		         // Agora sim faz os cálculos e mostra tudo
-		         calculos();
-		         mostrar();
-		     }
-
-		    // Pesquisa_Cod_Piso.setText("");
- 		    
-				double bruto = Double.parseDouble(EstoqueScraper.valor.replace("," , "."));
-				
-				NumberFormat formato = new DecimalFormat("#0,00");
-				
-				double valor_desc;
-				double bruto_lucro;
-				double desc_lucro;
-							
-				bruto_lucro = ((bruto * (0.9))+ bruto);
-				desc_lucro = bruto_lucro * (0.12);
-			    
-				valor_desc = bruto_lucro - desc_lucro;	
-				
-				/*
-				JOptionPane.showMessageDialog(null, "R$"+ new DecimalFormat("#,##0.00").format(valor_desc)+"\n\n"+BTEstoque_Asso.getText()+"m²\n\n"+Status_Asso.getText()+""
-						+ "\n\nAzul = Fora de linha mas tem estoque"
-						+ "\nLaranja = Fora de linha"
-						+ "\nVermelho = Padrão mas sem estoque");
-				*/
-				
-				status_cor = Status_Asso.getText();
-				estoque_cor = Double.parseDouble(BTEstoque_Asso.getText().replace("," , "."));
-				
-				if(status_cor.equals("PADRAO")) {
-
-					lblStatus.setIcon(new ImageIcon(CaminhoImagem+"\\Circulo Verde.png"));
-				}
-
-				if(status_cor.equals("ACABAR") && estoque_cor > 1) {
-
-					lblStatus.setIcon(new ImageIcon(CaminhoImagem+"\\Circulo Azul.png"));
-					
-					JOptionPane.showMessageDialog(null, "Produto fora de linha porém com estoque na Asso!");
-				}
-				
-				if(status_cor.equals("ACABAR") && estoque_cor < 1) {
-
-					lblStatus.setIcon(new ImageIcon(CaminhoImagem+"\\Circulo Laranja.png"));
-					
-					JOptionPane.showMessageDialog(null, "Produto fora de linha!");
-					
-				}
-				
-				if(status_cor.equals("PADRAO") && estoque_cor < 1) {
-
-					lblStatus.setIcon(new ImageIcon(CaminhoImagem+"\\Circulo Vermelho.png"));
-					
-					JOptionPane.showMessageDialog(null, "Produto padrão, mas sem estoque na Asso no momento!");
-				}
-				
-				if(status_cor.equals("NEGOCIACAO")) {
-
-					lblStatus.setIcon(new ImageIcon(CaminhoImagem+"\\Circulo Verde.png"));
-				}
-
-			    txtltimaAtt.requestFocusInWindow();
-			    
 		    }
-		    
 		});
 		
 		Botao_Pesquisar.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 18));
@@ -652,7 +446,6 @@ public class Procura extends JFrame {
 		Pesquisa_M_Cliente.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusGained(FocusEvent e) {
-				
 				Pesquisa_CX_Cliente.setText("0");
 				Pesquisa_M_Cliente.setText("");
 			}
@@ -670,7 +463,6 @@ public class Procura extends JFrame {
 		Pesquisa_CX_Cliente.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusGained(FocusEvent e) {
-				
 				Pesquisa_M_Cliente.setText("0");
 				Pesquisa_CX_Cliente.setText("");
 			}
@@ -700,13 +492,10 @@ public class Procura extends JFrame {
 		Botao_Reset.setBounds(185, 159, 160, 35);
 		Botao_Reset.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				
 				Pesquisa_Cod_Piso.setText("0");
 				Pesquisa_CX_Cliente.setText("0");
 				Pesquisa_M_Cliente.setText("0");
-				
 				apagar();
-				
 			}
 		});
 		Botao_Reset.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 18));
@@ -790,14 +579,12 @@ public class Procura extends JFrame {
 		Botao_Foto_Piso.setBounds(559, 206, 140, 35);
 		Botao_Foto_Piso.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				
 				try{
 			        URI link = new URI(link_foto);
 			        Desktop.getDesktop().browse(link);
 			    }catch(Exception erro){
 			            System.out.println(erro);
 			        }
-				
 			}
 		});
 		Botao_Foto_Piso.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 18));
@@ -908,16 +695,12 @@ public class Procura extends JFrame {
 		Botao_Site_Piso.setBounds(399, 206, 140, 35);
 		Botao_Site_Piso.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				
 				try{
 			        URI link = new URI(link_site);
-			        
 			        Desktop.getDesktop().browse(link);
-			        
 			    }catch(Exception erro){
 			            System.out.println(erro);
 			    }
-				
 			}
 		});
 		Botao_Site_Piso.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 18));
@@ -936,38 +719,25 @@ public class Procura extends JFrame {
 		BT_Whats.setIcon(new ImageIcon(CaminhoImagem+"\\Whatsapp2.png"));
 		BT_Whats.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-
 				String telefoneComMascara = FTF_Telefone.getText();
 	            String telefoneSemMascara = "55"+ telefoneComMascara.replaceAll("[^0-9]", "");
-				
 	            String nome = Mostra_Nome_Piso.getText(), m = Mostra_M_CX.getText(), pcx = Mostra_Peca_CX.getText(), valor = FTF_Valor.getText(), telefone = telefoneSemMascara, link = link_site;
-	           
 	            String mensagem = nome+".\nCada caixa do piso vem com "+pcx+ " peças e com "+m+"m².\nO valor é de R$"+valor+" por m².\nVeja mais sobre o piso no site: "+link;
 	            	
-	            // Codificando a mensagem para ser incluída na URL
 	            String mensagemCodificada = null;
 				try {
 					mensagemCodificada = URLEncoder.encode(mensagem, "UTF-8");
 				} catch (UnsupportedEncodingException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-
-	            // Construindo a URL final
 	            String url = "https://wa.me/" + telefone + "?text=" + mensagemCodificada;
-	            
-	            
 				 try{
 			        URI linkwpp = new URI(url);
-			        
 			        Desktop.getDesktop().browse(linkwpp);
-			        
 			    }catch(Exception erro){
 			            System.out.println(erro);
 			    }
-				
 			}
-			
 		});
 		BT_Whats.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 18));
 		BT_Whats.setBounds(779, 184, 240, 35);
@@ -1091,9 +861,7 @@ public class Procura extends JFrame {
 		JButton Botao_Imprimir = new JButton("Imprimir Dados do Piso");
 		Botao_Imprimir.addActionListener(new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
-		    	
 		    	Imprimir();
-		    	
 		      }
 		});
 		Botao_Imprimir.setMnemonic(KeyEvent.VK_S);
@@ -1104,7 +872,6 @@ public class Procura extends JFrame {
 		JButton BT_Add_Etiqueta = new JButton("Adicionar Etiqueta");
 		BT_Add_Etiqueta.addActionListener(new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
-		        
 		        GerenciadorEtiquetas.adicionarNaFila(
 		        	Mostra_Nome_Piso.getText(),
 		            Mostra_Cod_Asso.getText(),
@@ -1119,7 +886,147 @@ public class Procura extends JFrame {
 		BT_Add_Etiqueta.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 18));
 		BT_Add_Etiqueta.setBounds(779, 232, 240, 25);
 		contentPane.add(BT_Add_Etiqueta);
-			
+	}
+	
+	// =========================================================================================
+	//  NOVA LÓGICA DE LOGIN (CORRIGIDA)
+	// =========================================================================================
+	public void iniciarRotinaDeLogin() {
+	    File arquivoCookie = new File(EstoqueScraper.COOKIE_PATH);
+	    if (arquivoCookie.exists()) {
+	        lastModifiedTime = arquivoCookie.lastModified();
+	    } else {
+	        lastModifiedTime = 0;
+	    }
+
+	    EstoqueScraper.abrirNavegadorApenas();
+
+	    dialogEspera = new JDialog(this, "Aguardando Login", true); 
+	    dialogEspera.setSize(400, 200);
+	    dialogEspera.setLayout(new BorderLayout());
+	    dialogEspera.setLocationRelativeTo(this);
+	    dialogEspera.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE); 
+
+	    JLabel lblAviso = new JLabel("<html><center><h2>Faça o Login no Chrome...</h2><br>"
+	            + "Por favor, realize o login e o captcha na janela do navegador.<br>"
+	            + "O sistema detectará automaticamente quando terminar.</center></html>");
+	    lblAviso.setHorizontalAlignment(SwingConstants.CENTER);
+	    dialogEspera.add(lblAviso, BorderLayout.CENTER);
+
+	    timerVerificacao = new Timer(1000, new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	            EstoqueScraper.tentaCapturarCookieBackground();
+	            verificarSeArquivoMudou();
+	        }
+	    });
+	    timerVerificacao.start();
+
+	    dialogEspera.setVisible(true);
+	}
+
+	private void verificarSeArquivoMudou() {
+	    File arquivoCookie = new File(EstoqueScraper.COOKIE_PATH);
+	    if (arquivoCookie.exists()) {
+	        long currentModified = arquivoCookie.lastModified();
+	        
+	        // Se o arquivo foi modificado DEPOIS que abrimos a janela, o login deu certo!
+	        if (currentModified > lastModifiedTime) {
+	            
+	            // 1. Para o loop de verificação
+	            timerVerificacao.stop();
+	            
+	            // CORREÇÃO 3: Cria um delay de 1 segundo (1000ms) para o usuário ver que concluiu 
+	            // antes de fechar tudo e fazer a busca. Isso roda sem congelar a tela.
+	            Timer delayTimer = new Timer(1000, new ActionListener() {
+	                @Override
+	                public void actionPerformed(ActionEvent evt) {
+	                    dialogEspera.dispose(); 
+	                    EstoqueScraper.fecharChrome(); 
+	                    cookieValidado = true;
+	                    realizarPesquisa();
+	                }
+	            });
+	            delayTimer.setRepeats(false); // Executa só uma vez
+	            delayTimer.start();
+	            
+	            // Só por feedback visual rápido na caixinha de aviso
+	            JLabel aviso = (JLabel) dialogEspera.getContentPane().getComponent(0);
+	            aviso.setText("<html><center><h2>Login Identificado!</h2><br>Retornando ao sistema...</center></html>");
+	        }
+	    }
+	}
+	
+	private void realizarPesquisa() {
+        try {
+            m_cliente = Double.parseDouble(Pesquisa_M_Cliente.getText().replace(",", "."));
+            cx_cliente = Double.parseDouble(Pesquisa_CX_Cliente.getText().replace(",", "."));
+        } catch (Exception e) {
+            m_cliente = 0;
+            cx_cliente = 0;
+        }
+
+        apagar();
+
+	     if (carregarDadosDoPiso()) {
+	    	 boolean temCodAsso = cod_asso_banco != null && !cod_asso_banco.isEmpty();
+
+	    	 if (temCodAsso) {
+	    	     try {
+	    	         int resultado = EstoqueScraper.buscarEstoque(cod_asso_banco); 
+	                 
+	                 if (resultado == 1) {
+	                     BTEstoque_Asso.setText(EstoqueScraper.estoque);
+	                     Status_Asso.setText(EstoqueScraper.status);
+	                 } else if (resultado == 2) {
+	                     BTEstoque_Asso.setText("-");
+	                     Status_Asso.setText("Fora de linha");
+	                     lblStatus.setIcon(new ImageIcon(CaminhoImagem+"\\Circulo Laranja.png"));
+	                     JOptionPane.showMessageDialog(null, "Produto fora de linha!");
+	                     
+	                 } else if (resultado == 0) {
+	                     cookieValidado = false;
+	                     JOptionPane.showMessageDialog(null, "Sessão inválida. Reiniciando login...");
+	                     iniciarRotinaDeLogin(); 
+	                     return;
+	                 }
+	             } catch (IOException e1) {
+	                 JOptionPane.showMessageDialog(null, "Erro ao buscar estoque: " + e1.getMessage());
+	                 return;
+	             }
+	         } else {
+	             BTEstoque_Asso.setText("-");
+	             Status_Asso.setText("Produto local");
+	             lblStatus.setIcon(new ImageIcon(CaminhoImagem+"\\Circulo Verde.png"));
+	         }
+	         
+	         calculos();
+	         mostrar();
+	         
+	         try {
+				status_cor = Status_Asso.getText();
+				estoque_cor = Double.parseDouble(BTEstoque_Asso.getText().replace("," , "."));
+				
+				if(status_cor.equals("PADRAO")) lblStatus.setIcon(new ImageIcon(CaminhoImagem+"\\Circulo Verde.png"));
+				
+				if(status_cor.equals("ACABAR") && estoque_cor > 1) {
+					lblStatus.setIcon(new ImageIcon(CaminhoImagem+"\\Circulo Azul.png"));
+					JOptionPane.showMessageDialog(null, "Produto fora de linha porém com estoque na Asso!");
+				}
+				
+				if(status_cor.equals("ACABAR") && estoque_cor < 1) {
+					lblStatus.setIcon(new ImageIcon(CaminhoImagem+"\\Circulo Laranja.png"));
+					JOptionPane.showMessageDialog(null, "Produto fora de linha!");
+				}
+				
+				if(status_cor.equals("PADRAO") && estoque_cor < 1) {
+					lblStatus.setIcon(new ImageIcon(CaminhoImagem+"\\Circulo Vermelho.png"));
+					JOptionPane.showMessageDialog(null, "Produto padrão, mas sem estoque!");
+				}
+				if(status_cor.equals("NEGOCIACAO")) lblStatus.setIcon(new ImageIcon(CaminhoImagem+"\\Circulo Verde.png"));
+	         } catch (Exception e) {}
+	     }
+	    txtltimaAtt.requestFocusInWindow();
 	}
 	
 	public boolean carregarDadosDoPiso() {
@@ -1133,17 +1040,15 @@ public class Procura extends JFrame {
 	        stm = conexao.createStatement();
 	        ResultSet rs = stm.executeQuery("Select * from piso WHERE cod_asso = '" + cod_asso + "' OR cod_ctc ='" + cod_asso + "'");
 
-	        if (rs.next()) { // Se encontrou o piso
-	            // Carrega os dados para as variáveis da classe
+	        if (rs.next()) { 
 	            altura = Double.parseDouble(rs.getString("altura"));
 	            largura = Double.parseDouble(rs.getString("largura"));
 	            rejunte = Double.parseDouble(rs.getString("rejunte"));
 	            pecas_cx = Integer.parseInt(rs.getString("pecas_cx"));
-	            m_caixas = Double.parseDouble(rs.getString("m_cx")); // Usando m_cx do banco
+	            m_caixas = Double.parseDouble(rs.getString("m_cx")); 
 	            
 	            cod_asso_banco = rs.getString("cod_asso");
 
-	            // Carrega os dados que são apenas para exibição
 	            Mostra_Nome_Piso.setText(rs.getString("nome"));
 	            Mostra_Cod_Asso.setText(rs.getString("cod_asso"));
 	            Mostra_Cod_CTC.setText(rs.getString("cod_ctc"));
@@ -1155,10 +1060,10 @@ public class Procura extends JFrame {
 	            link_ambiente = rs.getString("ambiente");
 	            link_foto = rs.getString("foto");
 	            
-	            return true; // Sucesso
+	            return true; 
 	        } else {
 	            JOptionPane.showMessageDialog(null, "Piso com código '" + cod_asso + "' não encontrado.");
-	            return false; // Falha
+	            return false; 
 	        }
 	    } catch (Exception e) {
 	        JOptionPane.showMessageDialog(null, "Erro ao conectar ao banco de dados: " + e.getMessage());
@@ -1202,7 +1107,6 @@ public class Procura extends JFrame {
 	}
 
 	public void mostrar() {
-	    // --- Informações Técnicas ---
 	    Mostra_Larg.setText(String.valueOf(largura));
 	    Mostra_Alt.setText(String.valueOf(altura));
 	    Mostra_Peca_CX.setText(String.valueOf(pecas_cx));
@@ -1210,47 +1114,33 @@ public class Procura extends JFrame {
 	    Mostra_Rejunte.setText(String.valueOf(rejunte));
 	    Mostra_M_Peca.setText(String.format("%.4f", area_pc).replace(",", "."));
 
-	    // --- QTD Aproximada de Materiais ---
-	    // A linha abaixo foi alterada para usar a nova variável precisa
 	    Mostra_CX_Arredondado.setText(String.valueOf(caixas_arredondadas)); 
 	    Mostra_QTD_Pedir.setText(String.format("%.2f", m_pedir).replace(",", "."));
 	    
-	    // Argamassa
 	    Mostra_KG_Argamassa.setText(String.format("%.2f", argamassa).replace(",", "."));
 	    Mostra_Sacos_Argamassa.setText(String.valueOf((int)Math.ceil(saco_argamassa)));
 	    
-	    // Rejunte
 	    Mostra_KG_Rejunte.setText(String.format("%.2f", rejunte_total).replace(",", "."));
 	    Mostra_Sacos_Rejunte.setText(String.valueOf((int)Math.ceil(rejunte_total)));
 	}
 	
 	public void calculos() {
-	    // Passo 1: Calcular a área de uma peça individual
 	    area_pc = (altura / 100) * (largura / 100);
 
-	    // Passo 2: Definir como o cliente informou a quantidade
 	    if (m_cliente != 0) {
-	        // Se informou por m², calcula o número de caixas usando BigDecimal para precisão
 	        BigDecimal m_cliente_bd = new BigDecimal(String.valueOf(m_cliente));
 	        BigDecimal m_caixas_bd = new BigDecimal(String.valueOf(m_caixas));
 	        
-	        // Divide e arredonda para cima (CEILING) para obter o número exato de caixas
 	        caixas_arredondadas = m_cliente_bd.divide(m_caixas_bd, 0, RoundingMode.CEILING).intValue();
-	        
-	        // Mantemos o cálculo original em double para a variável cx_exatas se ela for usada em outro lugar
 	        cx_exatas = m_cliente / m_caixas;
 
 	    } else {
-	        // Se informou por caixas, usa esse valor diretamente e arredonda para cima
 	        cx_exatas = cx_cliente;
 	        caixas_arredondadas = (int)Math.ceil(cx_exatas);
 	    }
 
-	    // Passo 3: Calcular a metragem total a ser pedida (usando o número de caixas corrigido)
 	    m_pedir = m_caixas * caixas_arredondadas;
 
-	    // Passo 4: COM O VALOR DE m_pedir JÁ CALCULADO, calcular argamassa e rejunte
-	    // Fórmula do rejunte
 	    double soma_lados_mm = (largura * 10) + (altura * 10);
 	    double area_peca_mm = (largura * 10) * (altura * 10);
 	    if (area_peca_mm > 0) {
@@ -1258,17 +1148,15 @@ public class Procura extends JFrame {
 	        rejunte_total = m_pedir * rejunte_kg;
 	    }
 
-	    // Fórmula da argamassa (considerando 1 saco de 20kg para cada 3m²)
 	    saco_argamassa = m_pedir / 3.0;
 	    argamassa = saco_argamassa * 20;
 	}
 	
 	public MaskFormatter Mascara(String Mascara){
-        
         MaskFormatter F_Mascara = new MaskFormatter();
         try{
-            F_Mascara.setMask(Mascara); //Atribui a mascara
-            F_Mascara.setPlaceholderCharacter(' '); //Caracter para preencimento 
+            F_Mascara.setMask(Mascara); 
+            F_Mascara.setPlaceholderCharacter(' '); 
         }
         catch (Exception excecao) {
         excecao.printStackTrace();
@@ -1277,7 +1165,6 @@ public class Procura extends JFrame {
 	} 	
 
 	public void Imprimir() {
-	    // 1. Procura a impressora ELGIN
 	    javax.print.PrintService[] services = java.awt.print.PrinterJob.lookupPrintServices();
 	    javax.print.PrintService elginService = null;
 
@@ -1294,7 +1181,6 @@ public class Procura extends JFrame {
 	        return;
 	    }
 
-	    // 2. Configura o Papel (80mm)
 	    java.awt.print.PrinterJob job = java.awt.print.PrinterJob.getPrinterJob();
 	    try {
 	        job.setPrintService(elginService);
@@ -1306,15 +1192,14 @@ public class Procura extends JFrame {
 	    java.awt.print.PageFormat pf = job.defaultPage();
 	    java.awt.print.Paper paper = pf.getPaper();
 
-	    double width = 226; // 80mm
-	    double height = 3000; // Altura bem grande para não faltar
-	    double margin = 5;    // Margem pequena para aproveitar a largura
+	    double width = 226; 
+	    double height = 3000; 
+	    double margin = 5;   
 
 	    paper.setSize(width, height);
 	    paper.setImageableArea(margin, 0, width - (2 * margin), height);
 	    pf.setPaper(paper);
 
-	    // 3. Desenho do Layout
 	    job.setPrintable(new java.awt.print.Printable() {
 	        @Override
 	        public int print(java.awt.Graphics g, java.awt.print.PageFormat pf, int page) throws java.awt.print.PrinterException {
@@ -1323,10 +1208,9 @@ public class Procura extends JFrame {
 	            java.awt.Graphics2D g2d = (java.awt.Graphics2D) g;
 	            g2d.translate(pf.getImageableX(), pf.getImageableY());
 
-	            int y = 20; // Começa um pouco mais baixo para não grudar no corte
+	            int y = 20; 
 	            int x = 0; 
 	            
-	            // Fontes Pré-definidas para facilitar
 	            java.awt.Font fonteTitulo = new java.awt.Font("SansSerif", java.awt.Font.BOLD, 12);
 	            java.awt.Font fonteNormal = new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10);
 	            java.awt.Font fonteNegrito = new java.awt.Font("SansSerif", java.awt.Font.BOLD, 11);
@@ -1334,9 +1218,7 @@ public class Procura extends JFrame {
 	            java.awt.Font fonteNome = new java.awt.Font("SansSerif", java.awt.Font.BOLD, 11);
 	            java.awt.Font fonteDivisoria = new java.awt.Font("Monospaced", java.awt.Font.PLAIN, 10);
 
-	            // --- CABEÇALHO ---
 	            g2d.setFont(fonteTitulo);
-	            // Centralização manual (ajuste fino para 80mm)
 	            g2d.drawString("   CASA DOS TUBOS", x, y); 
 	            y += 18;
 	            
@@ -1344,41 +1226,31 @@ public class Procura extends JFrame {
 	            g2d.drawString("---------------------------------", x, y); 
 	            y += 18;
 
-	            // --- PRODUTO ---
 	            g2d.setFont(fonteNormal);
 	            g2d.drawString("PRODUTO:", x, y); 
 	            y += 15;
 	            
-	            // Nome do Piso (Fonte Grande e com quebra de linha se precisar)
 	            g2d.setFont(fonteNome);
-	         // Quebra de linha automática (até 6 linhas)
 	            String nomePiso = Mostra_Nome_Piso.getText();
 	            int limitePorLinha = 22;
 	            
 	            for (int i = 0; i < 6; i++) {
 	                int inicio = i * limitePorLinha;
-	                
-	                // Se o inicio ja for maior que o texto, acabou.
 	                if (inicio >= nomePiso.length()) break; 
-	                
 	                int fim = Math.min(inicio + limitePorLinha, nomePiso.length());
 	                String pedaco = nomePiso.substring(inicio, fim);
-	                
-	                // Se for a última linha permitida (6ª) e ainda tiver mais texto, corta e põe "..."
 	                if (i == 5 && fim < nomePiso.length()) {
 	                    pedaco = nomePiso.substring(inicio, fim - 3) + "...";
 	                }
-	                
 	                g2d.drawString(pedaco, x + 5, y); 
-	                y += 16; // Pula para a próxima linha
+	                y += 16; 
 	            }
 
 	            g2d.setFont(fonteDivisoria);
 	            g2d.drawString("---------------------------------", x, y); 
 	            y += 18;
 
-	            // --- CÓDIGOS ---
-	            g2d.setFont(fonteGrande); // Negrito Grande
+	            g2d.setFont(fonteGrande); 
 	            g2d.drawString("COD ASSO: " + Mostra_Cod_Asso.getText(), x, y); 
 	            y += 18;
 	            
@@ -1390,7 +1262,6 @@ public class Procura extends JFrame {
 	            g2d.drawString("---------------------------------", x, y); 
 	            y += 18;
 
-	            // --- QUANTIDADES (O Mais Importante) ---
 	            g2d.setFont(fonteGrande);
 	            g2d.drawString("QTD PEDIR: " + Mostra_QTD_Pedir.getText() + " m²", x, y); 
 	            y += 20;
@@ -1402,7 +1273,6 @@ public class Procura extends JFrame {
 	            g2d.drawString("---------------------------------", x, y); 
 	            y += 18;
 
-	            // --- ARGAMASSA E REJUNTE ---
 	            g2d.setFont(fonteGrande);
 	            g2d.drawString("Argamassa: " + Mostra_Sacos_Argamassa.getText() + " Saco (s)", x, y); 
 	            y += 18;
@@ -1413,29 +1283,25 @@ public class Procura extends JFrame {
 	            g2d.drawString("---------------------------------", x, y); 
 	            y += 18;
 
-	            // --- DATA E RODAPÉ ---
 	            g2d.setFont(new java.awt.Font("SansSerif", java.awt.Font.ITALIC, 9));
 	            java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-	            g2d.drawString(java.time.LocalDateTime.now().format(dtf), x + 40, y); // Alinhado à direita/centro
+	            g2d.drawString(java.time.LocalDateTime.now().format(dtf), x + 40, y); 
 	            
-	            y += 20; // Espaço final
+	            y += 20; 
 
-	            // --- FORÇA COMPRIMENTO MÍNIMO (8cm = ~230 pixels) ---
 	            if (y < 250) {
 	                y = 250; 
 	            }
-	            g2d.drawString(".", x, y); // Ponto final para corte
+	            g2d.drawString(".", x, y); 
 
 	            return PAGE_EXISTS;
 	        }
 	    }, pf);
 
-	    // 4. Manda bala
 	    try {
 	        job.print();
 	    } catch (java.awt.print.PrinterException ex) {
 	        javax.swing.JOptionPane.showMessageDialog(null, "Erro na impressão: " + ex.getMessage());
 	    }
 	}
-	
 }
