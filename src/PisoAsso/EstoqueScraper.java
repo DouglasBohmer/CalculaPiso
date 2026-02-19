@@ -102,15 +102,12 @@ public class EstoqueScraper {
     public static void fecharChrome() {
         if (driverLogin != null) {
             try { 
-                // Fecha especificamente a guia ativa onde o login foi feito
                 driverLogin.close(); 
-                // Desconecta o motor do Selenium
                 driverLogin.quit();  
             } catch (Exception e) {}
             driverLogin = null;
         }
         
-        // Mantemos isso apenas para evitar que processos fantasmas do driver travem a memória
         try {
             Runtime.getRuntime().exec("taskkill /F /IM chromedriver.exe");
         } catch (IOException e) {}
