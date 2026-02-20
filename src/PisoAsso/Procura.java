@@ -141,11 +141,10 @@ public class Procura extends JFrame {
 	private String cod_asso_banco ="";
 	private boolean cookieValidado = false;
 	private JLabel lblStatus;
-	
+	private long lastModifiedTime;
 	private JDialog dialogEspera;
 	private Timer timerVerificacao;
-	private long lastModifiedTime;
-	private boolean loginConcluido = false; // VARIÁVEL ADICIONADA AQUI
+	private boolean loginConcluido = false; // Controle de travamento
 	
 	double estoque_cor;
 	String status_cor;
@@ -903,11 +902,10 @@ public class Procura extends JFrame {
 	    EstoqueScraper.abrirNavegadorApenas();
 
 	    dialogEspera = new JDialog(this, "Aguardando Login", true); 
-	    dialogEspera.setSize(400, 220); // Aumentei um pouco a altura para caber o botão
+	    dialogEspera.setSize(400, 220); 
 	    dialogEspera.setLayout(new BorderLayout());
 	    dialogEspera.setLocationRelativeTo(this);
 	    
-	    // PERMITE FECHAR NO 'X' PARA NÃO TRAVAR O SISTEMA
 	    dialogEspera.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE); 
 	    loginConcluido = false;
 
@@ -917,24 +915,21 @@ public class Procura extends JFrame {
 	    lblAviso.setHorizontalAlignment(SwingConstants.CENTER);
 	    dialogEspera.add(lblAviso, BorderLayout.CENTER);
 
-	    // BOTÃO CANCELAR LOGIN
 	    JButton btnCancelar = new JButton("Cancelar Login");
 	    btnCancelar.setFont(new Font("Arial", Font.BOLD, 14));
 	    btnCancelar.addActionListener(new ActionListener() {
 	        public void actionPerformed(ActionEvent e) {
-	            dialogEspera.dispose(); // Isso chama o evento windowClosed abaixo
+	            dialogEspera.dispose(); 
 	        }
 	    });
 	    dialogEspera.add(btnCancelar, BorderLayout.SOUTH);
 
-	    // EVENTO: SE A JANELA FOR FECHADA (Seja pelo botão ou pelo 'X')
 	    dialogEspera.addWindowListener(new java.awt.event.WindowAdapter() {
 	        @Override
 	        public void windowClosed(java.awt.event.WindowEvent windowEvent) {
 	            if (timerVerificacao != null) {
-	                timerVerificacao.stop();
+	                timerVerificacao.stop(); 
 	            }
-	            // Só exibe mensagem se fechou sem conseguir o cookie
 	            if (!loginConcluido) {
 	                EstoqueScraper.fecharChrome();
 	                JOptionPane.showMessageDialog(null, "Login cancelado.");
@@ -942,51 +937,45 @@ public class Procura extends JFrame {
 	        }
 	    });
 
-	    timerVerificacao = new Timer(1000, new ActionListener() {
+	    timerVerificacao = new Timer(1500, new ActionListener() {
 	        @Override
 	        public void actionPerformed(ActionEvent e) {
-	            EstoqueScraper.tentaCapturarCookieBackground();
-	            verificarSeArquivoMudou();
+	            // AQUI ESTÁ A MÁGICA: O Java espiona o nome da aba pelo Windows
+	            if (EstoqueScraper.isLoginConcluidoPeloTitulo()) {
+	                loginConcluido = true; 
+	                timerVerificacao.stop();
+	                
+	                JLabel aviso = (JLabel) dialogEspera.getContentPane().getComponent(0);
+	                aviso.setText("<html><center><h2>Login Identificado!</h2><br>Capturando os dados de acesso...</center></html>");
+	                
+	                Component[] comps = dialogEspera.getContentPane().getComponents();
+	                for(Component c : comps) {
+	                    if(c instanceof JButton) c.setVisible(false);
+	                }
+
+	                Timer delayTimer = new Timer(1000, new ActionListener() {
+	                    @Override
+	                    public void actionPerformed(ActionEvent evt) {
+	                        boolean sucesso = EstoqueScraper.capturarCookiePosLogin();
+	                        EstoqueScraper.fecharChrome(); 
+	                        dialogEspera.dispose(); 
+	                        
+	                        if (sucesso) {
+	                            cookieValidado = true;
+	                            realizarPesquisa();
+	                        } else {
+	                            JOptionPane.showMessageDialog(null, "Falha ao capturar o cookie de acesso. Tente novamente.");
+	                        }
+	                    }
+	                });
+	                delayTimer.setRepeats(false); 
+	                delayTimer.start();
+	            }
 	        }
 	    });
 	    timerVerificacao.start();
 
-	    dialogEspera.setVisible(true); // Fica aqui até a janela sumir
-	}
-
-	private void verificarSeArquivoMudou() {
-	    File arquivoCookie = new File(EstoqueScraper.COOKIE_PATH);
-	    if (arquivoCookie.exists()) {
-	        long currentModified = arquivoCookie.lastModified();
-	        
-	        // Se o login passou!
-	        if (currentModified > lastModifiedTime) {
-	            loginConcluido = true; 
-	            timerVerificacao.stop();
-	            
-	            // Muda o texto da tela pra dar feedback
-	            JLabel aviso = (JLabel) dialogEspera.getContentPane().getComponent(0);
-	            aviso.setText("<html><center><h2>Login Identificado!</h2><br>Retornando ao sistema...</center></html>");
-	            
-	            // Esconde o botão cancelar para não clicarem atoa
-	            Component[] comps = dialogEspera.getContentPane().getComponents();
-	            for(Component c : comps) {
-	                if(c instanceof JButton) c.setVisible(false);
-	            }
-
-	            Timer delayTimer = new Timer(1000, new ActionListener() {
-	                @Override
-	                public void actionPerformed(ActionEvent evt) {
-	                    dialogEspera.dispose(); 
-	                    EstoqueScraper.fecharChrome(); 
-	                    cookieValidado = true;
-	                    realizarPesquisa();
-	                }
-	            });
-	            delayTimer.setRepeats(false); 
-	            delayTimer.start();
-	        }
-	    }
+	    dialogEspera.setVisible(true); 
 	}
 	
 	private void realizarPesquisa() {

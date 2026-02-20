@@ -21,11 +21,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
-import java.net.URL;
 import java.nio.file.*;
 import java.util.List;
 import java.util.Scanner;
@@ -48,7 +46,7 @@ public class EstoqueScraper {
     private static WebDriver driverLogin = null;
 
     // =========================================================================================
-    // MÉTODOS PARA O FLUXO AUTOMATIZADO DE LOGIN (ANTI-CAPTCHA)
+    // MÉTODOS PARA O FLUXO AUTOMATIZADO DE LOGIN (ESTRATÉGIA ESPIÃO CEGO V2)
     // =========================================================================================
 
     public static void abrirNavegadorApenas() {
@@ -63,7 +61,6 @@ public class EstoqueScraper {
 
         try {
             new File(CHROME_PROFILE_PATH).mkdirs();
-            // COMANDO ORIGINAL DE ABERTURA - Sem chamar a atenção do Captcha
             String cmd = "\"" + chromePath + "\" --remote-debugging-port=9222 --user-data-dir=\"" + CHROME_PROFILE_PATH + "\" \"" + LOGIN_URL + "\"";
             Runtime.getRuntime().exec(cmd);
         } catch (IOException e) {
@@ -71,80 +68,73 @@ public class EstoqueScraper {
         }
     }
 
-    // NOVA TÁTICA: Espiona silenciosamente se a tela do Captcha (Cloudflare) já sumiu 
-    // antes de injetar o Selenium, garantindo que você não seja bloqueado como robô.
-    private static boolean isSeguroParaConectarSelenium() {
+    // NOVA VERSÃO: Procura por parciais sem acento para evitar erros de codificação do Windows
+    public static boolean isLoginConcluidoPeloTitulo() {
         try {
-            URL url = new URL("http://127.0.0.1:9222/json");
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            con.setConnectTimeout(1000);
-            con.setReadTimeout(1000);
-            Scanner scanner = new Scanner(con.getInputStream());
-            String json = scanner.useDelimiter("\\A").hasNext() ? scanner.next() : "";
-            scanner.close();
+            // Executa o tasklist
+            Process process = Runtime.getRuntime().exec("tasklist /V /FI \"IMAGENAME eq chrome.exe\" /FO LIST");
+            Scanner scanner = new Scanner(process.getInputStream());
             
-            String lowerJson = json.toLowerCase();
-            // Se encontrar vestígios do Captcha na tela, retorna falso e espera.
-            if (lowerJson.contains("just a moment") || 
-                lowerJson.contains("um momento") || 
-                lowerJson.contains("attention required") || 
-                lowerJson.contains("atenção") ||
-                lowerJson.contains("cloudflare")) {
-                return false; 
+            while (scanner.hasNextLine()) {
+                String linha = scanner.nextLine().toLowerCase();
+                
+                // CRITÉRIO DE SUCESSO:
+                // O título "Catálogo por Produtos" contém "por produtos".
+                // Evitamos usar "Catálogo" por causa do acento 'á' que pode virar símbolo estranho.
+                if (linha.contains("por produtos") || linha.contains("catalogo") || linha.contains("rede asso")) {
+                    
+                    // SEGURANÇA EXTRA: Garantir que NÃO estamos na tela de login
+                    if (!linha.contains("central") && !linha.contains("login") && !linha.contains("acesso")) {
+                        scanner.close();
+                        return true; 
+                    }
+                }
             }
-            return true;
+            scanner.close();
         } catch (Exception e) {
-            return false;
+            // Silencioso
         }
+        return false;
     }
 
-    public static void tentaCapturarCookieBackground() {
-        if (!isChromeDebugOpen()) return; 
-
-        // Se o driver AINDA NÃO FOI CONECTADO
-        if (driverLogin == null) {
-            // Se a tela for o Captcha, nem tenta conectar para não dar erro de "Não sou humano"
-            if (!isSeguroParaConectarSelenium()) {
-                return; 
-            }
-            // Tela limpa! Conecta o Selenium
-            try {
+    public static boolean capturarCookiePosLogin() {
+        if (!isChromeDebugOpen()) return false;
+        
+        try {
+            if (driverLogin == null) {
                 ChromeOptions options = new ChromeOptions();
                 options.setExperimentalOption("debuggerAddress", "127.0.0.1:9222");
                 driverLogin = new ChromeDriver(options);
-            } catch (Exception e) {
-                return; 
             }
-        }
 
-        // Se já está conectado com sucesso, tenta pegar o cookie
-        try {
             String phpsessid = null;
             try {
                 phpsessid = driverLogin.manage().getCookieNamed("PHPSESSID").getValue();
             } catch (Exception e) {
-                return;
+                return false;
             }
 
             if (phpsessid != null && !phpsessid.isEmpty()) {
-                // Testa o cookie rapidinho no site para confirmar se o login foi feito
                 if (validarCookieString(phpsessid)) {
                     salvarCookieEmArquivo(phpsessid);
+                    return true;
                 }
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            // Silencioso
+        }
+        return false;
     }
 
     public static void fecharChrome() {
         if (driverLogin != null) {
             try { 
-                driverLogin.close(); // Fecha apenas a guia controlada
-                driverLogin.quit();  // Desconecta e limpa memória
+                driverLogin.close(); 
+                driverLogin.quit();  
             } catch (Exception e) {}
             driverLogin = null;
         }
         try {
-            // Garante que o executável fantasma não fique na memória
             Runtime.getRuntime().exec("taskkill /F /IM chromedriver.exe");
         } catch (IOException e) {}
     }
