@@ -127,23 +127,52 @@ public class GerenciadorEtiquetas {
             return;
         }
 
+        // --- INÍCIO DA ALTERAÇÃO ---
         PrintService[] services = PrinterJob.lookupPrintServices();
+        if (services.length == 0) {
+            JOptionPane.showMessageDialog(null, "Nenhuma impressora encontrada no sistema!");
+            return;
+        }
+
+        String[] nomesImpressoras = new String[services.length];
+        int indexPadrao = 0;
+        for (int i = 0; i < services.length; i++) {
+            nomesImpressoras[i] = services[i].getName();
+            if (nomesImpressoras[i].toUpperCase().contains("ARGOX")) {
+                indexPadrao = i;
+            }
+        }
+
+        String impressoraSelecionada = (String) JOptionPane.showInputDialog(
+                null, 
+                "Selecione a impressora:", 
+                "Imprimir Etiquetas", 
+                JOptionPane.QUESTION_MESSAGE, 
+                null, 
+                nomesImpressoras, 
+                nomesImpressoras[indexPadrao]
+        );
+
+        if (impressoraSelecionada == null) {
+            return; 
+        }
+
         PrintService argoxService = null;
         for (PrintService service : services) {
-            String name = service.getName().toUpperCase();
-            if (name.contains("ARGOX") || name.contains("ZEBRA") || name.contains("ELGIN")) {
+            if (service.getName().equals(impressoraSelecionada)) {
                 argoxService = service;
                 break;
             }
         }
 
-        if (argoxService == null) {
-            JOptionPane.showMessageDialog(null, "Impressora Argox não encontrada!");
-            return;
-        }
-
         PrinterJob job = PrinterJob.getPrinterJob();
-        try { job.setPrintService(argoxService); } catch (PrinterException e) { return; }
+        try { 
+            job.setPrintService(argoxService); 
+        } catch (PrinterException e) { 
+            JOptionPane.showMessageDialog(null, "Erro ao configurar a impressora: " + e.getMessage());
+            return; 
+        }
+        // --- FIM DA ALTERAÇÃO ---
 
         PageFormat pf = job.defaultPage();
         Paper paper = pf.getPaper();
@@ -186,7 +215,7 @@ public class GerenciadorEtiquetas {
 
         try {
             job.print();
-            JOptionPane.showMessageDialog(null, "Enviado para Argox!");
+            JOptionPane.showMessageDialog(null, "Enviado para a impressora!");
         } catch (PrinterException ex) {
             JOptionPane.showMessageDialog(null, "Erro na impressão: " + ex.getMessage());
         }

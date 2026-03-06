@@ -32,7 +32,7 @@ public class EstoqueScraper {
 
     private static final String PESQUISA_URL = "https://redeasso.areacentral.com.br/401/?pg=associado_catalogos_produtos&ordenacao=nome-asc";
     private static final String LOGIN_URL = "https://redeasso.areacentral.com.br/401/?pg=associado_catalogos_produtos&ordenacao=nome-asc";
-    private static final String CHROME_PROFILE_PATH = "C:\\selenium\\ChromeProfile"; 
+    private static final String CHROME_PROFILE_PATH = System.getProperty("user.home") + "\\selenium\\ChromeProfile"; 
     public static final String COOKIE_PATH = "\\\\Usuario-pc\\arquivos compartilhados\\Calcula Piso\\PisoAsso\\Extras\\cookie.txt";
     
     public static String estoque = "0";
