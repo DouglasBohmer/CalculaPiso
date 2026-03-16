@@ -78,12 +78,7 @@ public class EstoqueScraper {
             while (scanner.hasNextLine()) {
                 String linha = scanner.nextLine().toLowerCase();
                 
-                // CRITÉRIO DE SUCESSO:
-                // O título "Catálogo por Produtos" contém "por produtos".
-                // Evitamos usar "Catálogo" por causa do acento 'á' que pode virar símbolo estranho.
-                if (linha.contains("por produtos") || linha.contains("catalogo") || linha.contains("rede asso")) {
-                    
-                    // SEGURANÇA EXTRA: Garantir que NÃO estamos na tela de login
+                if (linha.contains("por produtos") || linha.contains("catalogo")) {
                     if (!linha.contains("central") && !linha.contains("login") && !linha.contains("acesso")) {
                         scanner.close();
                         return true; 
@@ -139,9 +134,6 @@ public class EstoqueScraper {
         } catch (IOException e) {}
     }
 
-    // =========================================================================================
-    // MÉTODOS DE BUSCA E VALIDAÇÃO
-    // =========================================================================================
 
     public static boolean validarCookieString(String cookie) {
         for (String codigoTeste : CODIGOS_TESTE) {
