@@ -8,22 +8,14 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
 
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Desktop;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.URI;
 import java.nio.file.*;
 import java.util.List;
 import java.util.Scanner;
@@ -56,7 +48,7 @@ public class EstoqueScraper {
             return;
         }
 
-        if (!configurarDriver(chromePath)) return;
+        // [MARCAÇÃO] Configuração manual de driver removida (Uso do Selenium Manager ativo)
         System.setProperty(ChromeDriverService.CHROME_DRIVER_SILENT_OUTPUT_PROPERTY, "true");
 
         try {
@@ -99,6 +91,7 @@ public class EstoqueScraper {
             if (driverLogin == null) {
                 ChromeOptions options = new ChromeOptions();
                 options.setExperimentalOption("debuggerAddress", "127.0.0.1:9222");
+                // [MARCAÇÃO] Instância com download automatizado pelo Selenium Manager
                 driverLogin = new ChromeDriver(options);
             }
 
@@ -249,49 +242,5 @@ public class EstoqueScraper {
             socket.connect(new InetSocketAddress("127.0.0.1", 9222), 1000); 
             return true;
         } catch (IOException e) { return false; }
-    }
-
-    private static boolean configurarDriver(String chromePath) {
-        String driverFolderPath = "\\\\USUARIO-PC\\arquivos compartilhados\\Calcula Piso\\PisoAsso\\Extras\\WebDriver\\";
-        String driverPath109 = driverFolderPath + "chromedriver109.exe";
-        try {
-            String command = "wmic datafile where name=\"" + chromePath.replace("\\", "\\\\") + "\" get Version /value";
-            Process process = Runtime.getRuntime().exec(command);
-            Scanner scanner = new Scanner(process.getInputStream()).useDelimiter("\\A");
-            String output = scanner.hasNext() ? scanner.next() : "";
-            String majorVersion = "";
-            if (!output.trim().isEmpty()) {
-                String[] lines = output.split("\n");
-                for (String line : lines) {
-                    if (line.startsWith("Version=")) {
-                        majorVersion = line.substring("Version=".length()).trim().split("\\.")[0];
-                        break;
-                    }
-                }
-            }
-            String driverPathToUse = majorVersion.equals("109") ? driverPath109 : driverFolderPath + "chromedriver" + majorVersion + ".exe";
-            if (new File(driverPathToUse).exists()) {
-                System.setProperty("webdriver.chrome.driver", driverPathToUse);
-                return true;
-            } else {
-                mostrarErroDriver(majorVersion, driverPathToUse);
-                return false;
-            }
-        } catch (Exception e) { e.printStackTrace(); return false; }
-    }
-
-    private static void mostrarErroDriver(String version, String path) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.add(new JLabel("Driver não encontrado para Chrome v" + version));
-        panel.add(new JLabel("Esperado: " + path));
-        JButton linkButton = new JButton("Baixar Driver");
-        linkButton.setForeground(Color.BLUE.darker());
-        linkButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        linkButton.addActionListener(e -> {
-            try { Desktop.getDesktop().browse(new URI("https://googlechromelabs.github.io/chrome-for-testing/")); } catch (Exception ex) {}
-        });
-        panel.add(linkButton);
-        JOptionPane.showMessageDialog(null, panel, "Erro Driver", JOptionPane.ERROR_MESSAGE);
     }
 }
