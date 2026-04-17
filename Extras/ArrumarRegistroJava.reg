@@ -1,0 +1,14 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\.jar]
+@="jarfile"
+
+[HKEY_CLASSES_ROOT\jarfile]
+@="Executable Jar File"
+
+[HKEY_CLASSES_ROOT\jarfile\shell]
+
+[HKEY_CLASSES_ROOT\jarfile\shell\open]
+
+[HKEY_CLASSES_ROOT\jarfile\shell\open\command]
+@="\"C:\\Program Files\\Java\\jdk-17\\bin\\javaw.exe\" -jar \"%1\" %*"

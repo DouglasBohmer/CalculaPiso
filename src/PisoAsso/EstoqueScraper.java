@@ -24,8 +24,11 @@ public class EstoqueScraper {
 
     private static final String PESQUISA_URL = "https://redeasso.areacentral.com.br/401/?pg=associado_catalogos_produtos&ordenacao=nome-asc";
     private static final String LOGIN_URL = "https://redeasso.areacentral.com.br/401/?pg=associado_catalogos_produtos&ordenacao=nome-asc";
+    
     private static final String CHROME_PROFILE_PATH = System.getProperty("user.home") + "\\selenium\\ChromeProfile"; 
-    public static final String COOKIE_PATH = "\\\\Usuario-pc\\arquivos compartilhados\\Calcula Piso\\PisoAsso\\Extras\\cookie.txt";
+    
+    // [MARCAÇÃO]
+    public static final String COOKIE_PATH = "\\\\192.168.0.157\\arquivos compartilhados\\Calcula Piso\\PisoAsso\\Extras\\cookie.txt";
     
     public static String estoque = "0";
     public static String status = "N/D";
@@ -37,10 +40,6 @@ public class EstoqueScraper {
     private static final String[] CODIGOS_TESTE = {"2176596", "3989", "2177133"};
     private static WebDriver driverLogin = null;
 
-    // =========================================================================================
-    // MÉTODOS PARA O FLUXO AUTOMATIZADO DE LOGIN (ESTRATÉGIA ESPIÃO CEGO V2)
-    // =========================================================================================
-
     public static void abrirNavegadorApenas() {
         String chromePath = getChromePath();
         if (chromePath == null) {
@@ -48,7 +47,6 @@ public class EstoqueScraper {
             return;
         }
 
-        // [MARCAÇÃO] Configuração manual de driver removida (Uso do Selenium Manager ativo)
         System.setProperty(ChromeDriverService.CHROME_DRIVER_SILENT_OUTPUT_PROPERTY, "true");
 
         try {
@@ -60,18 +58,19 @@ public class EstoqueScraper {
         }
     }
 
-    // NOVA VERSÃO: Procura por parciais sem acento para evitar erros de codificação do Windows
     public static boolean isLoginConcluidoPeloTitulo() {
         try {
-            // Executa o tasklist
             Process process = Runtime.getRuntime().exec("tasklist /V /FI \"IMAGENAME eq chrome.exe\" /FO LIST");
             Scanner scanner = new Scanner(process.getInputStream());
             
             while (scanner.hasNextLine()) {
                 String linha = scanner.nextLine().toLowerCase();
                 
-                if (linha.contains("por produtos") || linha.contains("catalogo")) {
-                    if (!linha.contains("central") && !linha.contains("login") && !linha.contains("acesso")) {
+                if (linha.contains("produtos") || linha.contains("catalogo")) {
+                    if (linha.contains("pg=associado") || linha.contains("areacentral") || linha.contains("http")) {
+                        continue;
+                    }
+                    if (!linha.contains("login") && !linha.contains("acesso") && !linha.contains("central")) {
                         scanner.close();
                         return true; 
                     }
@@ -79,7 +78,6 @@ public class EstoqueScraper {
             }
             scanner.close();
         } catch (Exception e) {
-            // Silencioso
         }
         return false;
     }
@@ -89,9 +87,15 @@ public class EstoqueScraper {
         
         try {
             if (driverLogin == null) {
+                
+                String os = System.getProperty("os.name").toLowerCase();
+                if (os.contains("windows 7")) {
+                    // [MARCAÇÃO]
+                    System.setProperty("webdriver.chrome.driver", "\\\\192.168.0.157\\arquivos compartilhados\\Calcula Piso\\PisoAsso\\Extras\\WebDriver\\chromedriver109.exe");
+                }
+                
                 ChromeOptions options = new ChromeOptions();
                 options.setExperimentalOption("debuggerAddress", "127.0.0.1:9222");
-                // [MARCAÇÃO] Instância com download automatizado pelo Selenium Manager
                 driverLogin = new ChromeDriver(options);
             }
 
@@ -109,7 +113,6 @@ public class EstoqueScraper {
                 }
             }
         } catch (Exception e) {
-            // Silencioso
         }
         return false;
     }
@@ -137,6 +140,8 @@ public class EstoqueScraper {
                         .data("filtro[]", "PF.REFERENCIA")
                         .data("operador[]", "IGUAL")
                         .data("valor_filtro1[]", codigoTeste)
+                        // [MARCAÇÃO]
+                        .timeout(5000)
                         .post();
                 if (doc.selectFirst("b:matchesOwn(^Múltiplo:)") != null) {
                     return true; 
@@ -168,9 +173,11 @@ public class EstoqueScraper {
                         .data("filtro[]", "PF.REFERENCIA")
                         .data("operador[]", "IGUAL")
                         .data("valor_filtro1[]", codigo)
+                        // [MARCAÇÃO]
+                        .timeout(5000)
                         .post();
 
-                Element multiploLabel = doc.selectFirst("b:matchesOwn(^Múltiplo:)");
+                    Element multiploLabel = doc.selectFirst("b:matchesOwn(^Múltiplo:)");
 
                 if (multiploLabel != null) {
                     multiplo = multiploLabel.nextSibling().toString().trim().replace(",", ".");
@@ -232,7 +239,12 @@ public class EstoqueScraper {
     }
     
     private static String getChromePath() {
-        String[] possiblePaths = {"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"};
+        String appDataPath = System.getenv("LOCALAPPDATA") + "\\Google\\Chrome\\Application\\chrome.exe";
+        String[] possiblePaths = {
+            "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", 
+            "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+            appDataPath
+        };
         for (String p : possiblePaths) if (new File(p).exists()) return p;
         return null;
     }

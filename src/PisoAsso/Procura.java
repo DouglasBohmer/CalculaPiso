@@ -77,7 +77,8 @@ public class Procura extends JFrame {
 
 	private JPanel contentPane;
 		
-	public static String CaminhoImagem = "\\\\USUARIO-PC\\arquivos compartilhados\\Calcula Piso\\PisoAsso\\Extras\\Imagens"; //PC Loja
+	// [MARCAÇÃO]
+	public static String CaminhoImagem = "\\\\192.168.0.157\\arquivos compartilhados\\Calcula Piso\\PisoAsso\\Extras\\Imagens"; //PC Loja
 	public static String CaminhoBD = "jdbc:mysql://192.168.0.157:3306/calcula_piso"; //PC Loja
 	
 	private JTextField Pesquisa_Cod_Piso;
@@ -300,19 +301,19 @@ public class Procura extends JFrame {
 		});
 		Botao_Pesquisar.setMnemonic(KeyEvent.VK_S);
 
+		// [MARCAÇÃO]
 		Botao_Pesquisar.addActionListener(new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
-
-		        if (VerificaCodigo(Pesquisa_Cod_Piso.getText())) {
-		            JOptionPane.showMessageDialog(null, "Campo de pesquisa do código está vazio! Digite algo para pesquisar");
-		            return;
-		        }
-		        if (VerificaValor(Pesquisa_M_Cliente.getText(), Pesquisa_CX_Cliente.getText())) {
-		            JOptionPane.showMessageDialog(null, "Os campos de quantidade de caixas ou a metragem do piso são obrigatórios!");
-		            return;
-		        }
-
 		        try {
+		            if (VerificaCodigo(Pesquisa_Cod_Piso.getText())) {
+		                JOptionPane.showMessageDialog(null, "Campo de pesquisa do código está vazio! Digite algo para pesquisar");
+		                return;
+		            }
+		            if (VerificaValor(Pesquisa_M_Cliente.getText(), Pesquisa_CX_Cliente.getText())) {
+		                JOptionPane.showMessageDialog(null, "Os campos de quantidade de caixas ou a metragem do piso são obrigatórios!");
+		                return;
+		            }
+
 		            boolean cookieOk = EstoqueScraper.validarCookie();
 		            
 		            if (cookieOk) {
@@ -322,8 +323,9 @@ public class Procura extends JFrame {
 		            	iniciarRotinaDeLogin();
 		            }
 		            
-		        } catch (IOException ex) {
-		             iniciarRotinaDeLogin();
+		        } catch (Throwable ex) {
+		        	 JOptionPane.showMessageDialog(null, "ERRO INVISÍVEL DETECTADO: \n" + ex.toString());
+		             ex.printStackTrace();
 		        }
 		    }
 		});
@@ -888,9 +890,6 @@ public class Procura extends JFrame {
 		contentPane.add(BT_Add_Etiqueta);
 	}
 	
-	// =========================================================================================
-	//  NOVA LÓGICA DE LOGIN (COM OPÇÃO DE CANCELAMENTO E DESBLOQUEIO)
-	// =========================================================================================
 	public void iniciarRotinaDeLogin() {
 	    File arquivoCookie = new File(EstoqueScraper.COOKIE_PATH);
 	    if (arquivoCookie.exists()) {
@@ -940,7 +939,6 @@ public class Procura extends JFrame {
 	    timerVerificacao = new Timer(1500, new ActionListener() {
 	        @Override
 	        public void actionPerformed(ActionEvent e) {
-	            // AQUI ESTÁ A MÁGICA: O Java espiona o nome da aba pelo Windows
 	            if (EstoqueScraper.isLoginConcluidoPeloTitulo()) {
 	                loginConcluido = true; 
 	                timerVerificacao.stop();
